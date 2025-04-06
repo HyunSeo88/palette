@@ -2,64 +2,68 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  nickname: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
-  },
   email: {
     type: String,
-    required: true,
+    required: [true, '이메일은 필수 입력 항목입니다.'],
     unique: true,
+    lowercase: true,
     trim: true,
-    lowercase: true
+    validate: {
+      validator: function(v) {
+        return /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(v);
+      },
+      message: '유효한 이메일 주소를 입력해주세요.'
+    }
   },
   password: {
     type: String,
-    required: true,
-    minlength: 6
+    required: [true, '비밀번호는 필수 입력 항목입니다.'],
+    minlength: [8, '비밀번호는 최소 8자 이상이어야 합니다.'],
+    select: false
   },
-  gender: {
+  nickname: {
     type: String,
-    enum: ['male', 'female', 'other'],
-    required: true
-  },
-  ageGroup: {
-    type: String,
-    enum: ['10s', '20s', '30s', '40s', '50s', '60s+'],
-    required: true
+    required: [true, '닉네임은 필수 입력 항목입니다.'],
+    minlength: [2, '닉네임은 최소 2자 이상이어야 합니다.'],
+    maxlength: [20, '닉네임은 최대 20자까지 가능합니다.'],
+    trim: true
   },
   colorVisionType: {
     type: String,
-    enum: ['normal', 'protanopia', 'deuteranopia', 'tritanopia', 'monochromacy'],
-    required: true
+    required: [true, '색각 유형은 필수 선택 항목입니다.'],
+    enum: {
+      values: ['normal', 'protanopia', 'deuteranopia', 'tritanopia', 'colorWeak'],
+      message: '유효하지 않은 색각 유형입니다.'
+    }
   },
-  preferredStyles: [{
-    type: String
-  }],
-  confusingColors: [{
-    type: String
-  }],
-  budget: {
+  profileImage: {
     type: String,
-    enum: ['low', 'medium', 'high']
+    default: 'default-profile.png'
+  },
+  bio: {
+    type: String,
+    maxlength: [200, '자기소개는 최대 200자까지 가능합니다.']
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
   },
   points: {
     type: Number,
     default: 0
   },
-  level: {
-    type: Number,
-    default: 1
-  },
   createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
     type: Date,
     default: Date.now
   }
 });
 
-// Password hashing middleware
+// 비밀번호 암호화 미들웨어
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
@@ -72,11 +76,21 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// Method to compare password
+// 비밀번호 검증 메서드
 userSchema.methods.comparePassword = async function(candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw new Error(error);
+  }
 };
+
+// updatedAt 자동 업데이트
+userSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 
-module.exports = User; 
+module.exports = User;
