@@ -39,7 +39,7 @@ palette/
 ## 설치 및 실행 방법
 1. 저장소 클론
 ```bash
-git clone https://github.com/HyunSeo88/palette.git
+git clone https://github.com/your-username/palette.git
 cd palette
 ```
 
@@ -64,4 +64,4 @@ npm start
 4. PR 생성
 
 ## 라이센스
-MIT License
+MIT License 
