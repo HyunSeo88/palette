@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import theme from './styles/theme';
 
 // Components
+import MainLayout from './components/MainLayout';
 import Register from './components/auth/Register';
 import Login from './components/auth/Login';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -19,7 +20,6 @@ function App() {
           <Routes>
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
-            {/* 보호된 라우트 예시 */}
             <Route
               path="/profile"
               element={
@@ -28,13 +28,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            {/* 기본 페이지 */}
-            <Route
-              path="/"
-              element={
-                <div>Welcome to Palette</div>
-              }
-            />
+            <Route path="/" element={<MainLayout />} />
           </Routes>
         </Router>
       </AuthProvider>

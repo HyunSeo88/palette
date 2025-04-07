@@ -55,8 +55,7 @@ const Palette = ({ currentAngle, onSegmentClick }) => {
               <feMergeNode/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
-          </filter>
-        </defs>
+3        </defs>
         <circle cx="50" cy="50" r="48" fill="#FDFDFD" filter="url(#dropShadow)" />
         {segments.map((segment, index) => (
           <PaletteSegment
