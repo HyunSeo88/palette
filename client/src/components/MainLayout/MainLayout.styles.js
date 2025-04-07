@@ -11,26 +11,69 @@ export const LayoutContainer = styled(Box)(({ theme }) => ({
   position: 'relative',
 }));
 
-export const TopSection = styled(Paper)(({ theme }) => ({
-  position: 'sticky',
+export const TopDynamicArea = styled(Box)(({ theme }) => ({
+  height: '100vh',
+  width: '100%',
+  display: 'flex',
+  position: 'fixed',
   top: 0,
-  zIndex: 1200,
+  left: 0,
   backgroundColor: theme.palette.background.paper,
-  padding: theme.spacing(2, 0),
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-  transition: 'all 0.3s ease',
-  
-  [theme.breakpoints.up('sm')]: {
-    padding: theme.spacing(2, 0),
+  overflow: 'hidden',
+  [theme.breakpoints.down('md')]: {
+    flexDirection: 'column',
+    height: 'auto',
+    position: 'relative',
   },
+}));
 
-  [theme.breakpoints.up('md')]: {
-    padding: theme.spacing(2, 0),
+export const LeftPanel = styled(Box)(({ theme }) => ({
+  width: '35%',
+  height: '100vh',
+  padding: theme.spacing(4),
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRight: `1px solid ${theme.palette.divider}`,
+  position: 'relative',
+  backgroundColor: theme.palette.background.default,
+
+  [theme.breakpoints.down('md')]: {
+    width: '100%',
+    height: 'auto',
+    padding: theme.spacing(2),
+    borderRight: 'none',
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    justifyContent: 'flex-start',
   },
+}));
 
-  '.scrolled &': {
-    padding: theme.spacing(1, 0),
-  }
+export const RightPanel = styled(Box)(({ theme }) => ({
+  width: '65%',
+  height: '100vh',
+  padding: theme.spacing(4),
+  overflowY: 'auto',
+  position: 'relative',
+
+  [theme.breakpoints.down('md')]: {
+    width: '100%',
+    height: 'auto',
+    padding: theme.spacing(2),
+    overflowY: 'visible',
+  },
+}));
+
+export const FeedSection = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(4, 0),
+  backgroundColor: theme.palette.background.default,
+  marginTop: '100vh',
+  position: 'relative',
+  zIndex: 1,
+
+  [theme.breakpoints.down('md')]: {
+    marginTop: 0,
+  },
 }));
 
 export const ContentSection = styled(Box, {
@@ -40,21 +83,6 @@ export const ContentSection = styled(Box, {
   width: '100%',
   position: 'relative',
   backgroundColor: theme.palette.background.default,
-  transition: 'padding 0.3s ease',
-  
-  padding: theme.spacing(2, 0),
-  paddingTop: isScrolled ? theme.spacing(2) : theme.spacing(4),
-  
-  [theme.breakpoints.up('sm')]: {
-    padding: theme.spacing(3, 0),
-    paddingTop: isScrolled ? theme.spacing(3) : theme.spacing(6),
-  },
-
-  [theme.breakpoints.up('md')]: {
-    padding: theme.spacing(4, 0),
-    paddingTop: isScrolled ? theme.spacing(4) : theme.spacing(8),
-  },
-
   '&::-webkit-scrollbar': {
     width: '8px',
   },
@@ -73,8 +101,6 @@ export const ContentSection = styled(Box, {
 export const LogoContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'center',
-  marginBottom: theme.spacing(2),
   gap: theme.spacing(1),
 }));
 
@@ -105,68 +131,6 @@ export const GradientText = styled(motion(Typography))(({ theme }) => ({
   letterSpacing: '0.5px',
 }));
 
-export const HeroSection = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3, 0, 6),
-  marginBottom: theme.spacing(4),
-  position: 'relative',
-  minHeight: 'calc(100vh - 80px)',
-  display: 'flex',
-  flexDirection: 'column',
-  
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: '30%',
-    backgroundImage: `radial-gradient(circle at 50% 30%, ${theme.palette.primary.light}20, transparent 70%)`,
-    zIndex: -1,
-  },
-  
-  [theme.breakpoints.up('md')]: {
-    padding: theme.spacing(6, 0, 8),
-    marginBottom: theme.spacing(6),
-  },
-}));
-
-export const SplitPanelContainer = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  width: '100%',
-  height: '100%',
-  flex: 1,
-  
-  [theme.breakpoints.up('md')]: {
-    flexDirection: 'row',
-  },
-}));
-
-export const LeftPanel = styled(Box)(({ theme }) => ({
-  width: '100%',
-  padding: theme.spacing(2),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  
-  [theme.breakpoints.up('md')]: {
-    width: '35%',
-    padding: theme.spacing(4),
-    borderRight: `1px solid ${theme.palette.divider}`,
-  },
-}));
-
-export const RightPanel = styled(Box)(({ theme }) => ({
-  width: '100%',
-  padding: theme.spacing(2),
-  
-  [theme.breakpoints.up('md')]: {
-    width: '65%',
-    padding: theme.spacing(4),
-  },
-}));
-
 export const MenuInfoContainer = styled(motion.div)(({ theme }) => ({
   marginTop: theme.spacing(4),
   display: 'flex',
@@ -187,53 +151,12 @@ export const MenuIconWrapper = styled(motion.div)(({ theme, color }) => ({
   height: '60px',
   borderRadius: '50%',
   backgroundColor: color,
-  color: theme.palette.getContrastText(color),
+  color: theme.palette.getContrastText(color || theme.palette.primary.main),
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   fontSize: '24px',
-  boxShadow: `0 4px 12px ${color}80`,
-}));
-
-export const HeroContent = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textAlign: 'center',
-  marginBottom: theme.spacing(4),
-}));
-
-export const ColorPaletteContainer = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  gap: theme.spacing(1),
-  justifyContent: 'center',
-  margin: theme.spacing(2, 0),
-  flexWrap: 'wrap',
-}));
-
-export const ColorDot = styled(motion.div)(({ theme, color }) => ({
-  width: '24px',
-  height: '24px',
-  borderRadius: '50%',
-  backgroundColor: color,
-  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-  cursor: 'pointer',
-  
-  [theme.breakpoints.up('sm')]: {
-    width: '32px',
-    height: '32px',
-  },
-}));
-
-export const HeroImage = styled(motion.img)(({ theme }) => ({
-  width: '100%',
-  maxWidth: '800px',
-  margin: '0 auto',
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.15)',
-  aspectRatio: '16/9',
-  objectFit: 'cover',
+  boxShadow: `0 4px 12px ${(color || theme.palette.primary.main)}80`,
 }));
 
 export const ContentCard = styled(motion(Paper))(({ theme }) => ({
@@ -270,18 +193,9 @@ export const CardGrid = styled(Box)(({ theme }) => ({
     gridTemplateColumns: 'repeat(2, 1fr)',
   },
   
-  [theme.breakpoints.up('md')]: {
+  [theme.breakpoints.up('lg')]: {
     gridTemplateColumns: 'repeat(3, 1fr)',
   },
-}));
-
-export const FeedSection = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(4, 0),
-  backgroundColor: theme.palette.background.default,
-  borderTop: `1px solid ${theme.palette.divider}`,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(4),
 }));
 
 export const SectionTitle = styled(Typography)(({ theme }) => ({
