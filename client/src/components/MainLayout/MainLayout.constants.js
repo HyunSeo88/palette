@@ -1,3 +1,11 @@
+import {
+  Sun,
+  TrendingUp,
+  Camera,
+  HelpCircle,
+  Star
+} from 'react-feather';
+
 /**
  * MainLayout 컴포넌트에서 사용하는 상수 값 모음
  */
@@ -29,4 +37,21 @@ export const UI_TEXT = {
 };
 
 // 애니메이션 확률 - API 오류 시뮬레이션용
-export const ERROR_PROBABILITY = 0.05; // 5% 확률로 에러 발생 
+export const ERROR_PROBABILITY = 0.05; // 5% 확률로 에러 발생
+
+// 메뉴 아이템 정의 (기존 PaletteMenu.constants.js 내용)
+export const menuIcons = {
+  values: Sun,
+  hot: TrendingUp,
+  outfit: Camera,
+  poll: HelpCircle,
+  event: Star,
+};
+
+export const MENU_ITEMS = [
+  { id: 'values', title: '컬러 가치관', color: PALETTE_COLORS.BLUE }, // Use PALETTE_COLORS
+  { id: 'hot', title: '인기 게시물', color: PALETTE_COLORS.RED },
+  { id: 'outfit', title: '오늘의 착장', color: PALETTE_COLORS.YELLOW },
+  { id: 'poll', title: '컬러 투표', color: PALETTE_COLORS.GRAY },
+  { id: 'event', title: '이벤트', color: PALETTE_COLORS.LIGHT_GRAY }, // Use key for light gray
+]; 

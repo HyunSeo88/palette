@@ -1,12 +1,34 @@
 import { createTheme } from '@mui/material/styles';
 
+// Common style constants
+export const COMMON_STYLES = {
+  card: {
+    borderRadius: 8,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    transition: 'transform 0.2s ease',
+    hover: {
+      transform: 'translateY(-4px)'
+    }
+  },
+  glass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backdropFilter: 'blur(10px)'
+  },
+  gridBreakpoints: {
+    xs: '1fr',
+    sm: 'repeat(2, 1fr)',
+    md: 'repeat(3, 1fr)',
+    lg: 'repeat(4, 1fr)'
+  }
+};
+
+// Theme configuration
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#87CEEB', // 하늘색
-      light: '#B0E0F7',
-      dark: '#5BACD8',
-      contrastText: '#FFFFFF',
+      main: '#1976d2',
+      light: '#42a5f5',
+      dark: '#1565c0'
     },
     secondary: {
       main: '#9C27B0', // 보라색
@@ -51,75 +73,27 @@ const theme = createTheme({
       900: '#212121',
     },
     background: {
-      default: '#FFFFFF',
-      paper: '#FAFAFA',
+      default: '#F0F8FF',
+      paper: '#FFFFFF'
     },
   },
   typography: {
-    fontFamily: [
-      '-apple-system',
-      'BlinkMacSystemFont',
-      '"Segoe UI"',
-      'Roboto',
-      '"Helvetica Neue"',
-      'Arial',
-      'sans-serif',
-    ].join(','),
-    h1: {
-      fontWeight: 700,
-      fontSize: '2.5rem',
-      lineHeight: 1.2,
-    },
-    h2: {
-      fontWeight: 700,
-      fontSize: '2rem',
-      lineHeight: 1.3,
-    },
-    h3: {
-      fontWeight: 700,
-      fontSize: '1.75rem',
-      lineHeight: 1.4,
-    },
-    h4: {
-      fontWeight: 600,
-      fontSize: '1.5rem',
-      lineHeight: 1.4,
-    },
-    h5: {
-      fontWeight: 600,
-      fontSize: '1.25rem',
-      lineHeight: 1.4,
-    },
-    h6: {
-      fontWeight: 600,
-      fontSize: '1rem',
-      lineHeight: 1.5,
-    },
-    body1: {
-      fontSize: '1rem',
-      lineHeight: 1.5,
-    },
-    body2: {
-      fontSize: '0.875rem',
-      lineHeight: 1.5,
-    },
-    button: {
-      fontWeight: 600,
-      fontSize: '0.875rem',
-      textTransform: 'none',
-    },
+    fontFamily: '"Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+    h1: { fontWeight: 600 },
+    h2: { fontWeight: 600 },
+    h3: { fontWeight: 600 },
+    h4: { fontWeight: 600 },
+    h5: { fontWeight: 600 },
+    h6: { fontWeight: 600 }
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 8
   },
   shadows: [
     'none',
-    '0px 2px 1px -1px rgba(0,0,0,0.06),0px 1px 1px 0px rgba(0,0,0,0.04),0px 1px 3px 0px rgba(0,0,0,0.03)',
-    '0px 3px 3px -2px rgba(0,0,0,0.06),0px 2px 6px 0px rgba(0,0,0,0.04),0px 1px 10px 0px rgba(0,0,0,0.03)',
-    '0px 3px 5px -1px rgba(0,0,0,0.06),0px 5px 8px 0px rgba(0,0,0,0.04),0px 1px 14px 0px rgba(0,0,0,0.03)',
-    '0px 4px 5px -2px rgba(0,0,0,0.06),0px 7px 10px 1px rgba(0,0,0,0.04),0px 2px 16px 1px rgba(0,0,0,0.03)',
-    '0px 6px 10px -3px rgba(0,0,0,0.06),0px 9px 18px 1px rgba(0,0,0,0.04),0px 3px 16px 2px rgba(0,0,0,0.03)',
-    // ...나머지 그림자 값들
+    '0 2px 4px rgba(0,0,0,0.05)',
+    '0 2px 8px rgba(0,0,0,0.1)',
+    // ... rest of the shadows
   ],
   components: {
     MuiPaper: {
