@@ -1,53 +1,64 @@
 import React from 'react';
-import { Box } from '@mui/material';
-import {
-  FeedSection,
-  OOTDGrid,
-  TextContentGrid,
-  SectionTitleContainer,
-  SectionTitle
+import { Box, Typography } from '@mui/material';
+import { 
+  TextCard,
+  OOTDImageContainer,
+  OOTDImage,
+  OOTDLabel 
 } from '../MainLayout/MainLayout.styles';
-import TextPost from './components/TextPost';
-import OOTDPost from './components/OOTDPost';
 import { ootdItems, hotPosts, events } from '../../data/feedData';
+import PostMetrics from './components/PostMetrics';
+import AuthorInfo from './components/AuthorInfo';
+import FeedSection from './components/FeedSection';
+import { SectionDividerBox } from './CommunityFeed.styles';
+
+const SectionDivider = () => <SectionDividerBox />;
 
 const CommunityFeed = () => {
   return (
-    <Box>
-      {/* Hot Posts Section */}
-      <FeedSection>
-        <SectionTitleContainer>
-          <SectionTitle>Hot 게시물</SectionTitle>
-        </SectionTitleContainer>
-        <TextContentGrid>
-          {hotPosts.map((post) => (
-            <TextPost key={post.id} {...post} />
-          ))}
-        </TextContentGrid>
+    <Box sx={{ p: 4 }}>
+      {/* OOTD Section */}
+      <FeedSection title="OOTD">
+        {ootdItems.map((item) => (
+          <Box key={item.id} sx={{ position: 'relative' }}>
+            <OOTDImageContainer>
+              <OOTDImage src={item.image} alt={item.label} />
+              <OOTDLabel>{item.label}</OOTDLabel>
+            </OOTDImageContainer>
+            <PostMetrics likes={item.likes} comments={item.comments} />
+          </Box>
+        ))}
       </FeedSection>
 
-      {/* OOTD Section */}
-      <FeedSection>
-        <SectionTitleContainer>
-          <SectionTitle>오늘의 코디</SectionTitle>
-        </SectionTitleContainer>
-        <OOTDGrid>
-          {ootdItems.map((item) => (
-            <OOTDPost key={item.id} {...item} />
-          ))}
-        </OOTDGrid>
+      <SectionDivider />
+
+      {/* Hot Posts Section */}
+      <FeedSection title="Hot Posts">
+        {hotPosts.map((post) => (
+          <TextCard key={post.id}>
+            <AuthorInfo author={post.author} avatar={post.avatar} />
+            <Typography variant="h6">{post.title}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {post.content}
+            </Typography>
+            <PostMetrics likes={post.likes} comments={post.comments} />
+          </TextCard>
+        ))}
       </FeedSection>
+
+      <SectionDivider />
 
       {/* Events Section */}
-      <FeedSection>
-        <SectionTitleContainer>
-          <SectionTitle>이벤트 소식</SectionTitle>
-        </SectionTitleContainer>
-        <TextContentGrid>
-          {events.map((event) => (
-            <TextPost key={event.id} {...event} />
-          ))}
-        </TextContentGrid>
+      <FeedSection title="Events">
+        {events.map((event) => (
+          <TextCard key={event.id}>
+            <Typography variant="h6">{event.title}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {event.content}
+            </Typography>
+            <PostMetrics likes={event.likes} comments={event.comments} />
+          </TextCard>
+        ))}
       </FeedSection>
     </Box>
   );

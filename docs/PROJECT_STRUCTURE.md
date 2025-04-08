@@ -1,80 +1,86 @@
 # 프로젝트 구조
 
 ## 1. 개요
-색각 이상자를 위한 패션 커뮤니티 웹 애플리케이션입니다. 사용자들이 서로의 패션 스타일을 공유하고, 색상 조합에 대한 조언을 주고받을 수 있는 플랫폼을 제공합니다.
+패션 커뮤니티를 위한 모던하고 직관적인 웹 플랫폼입니다. 사용자들이 서로의 패션 스타일을 공유하고 소통할 수 있는 공간을 제공합니다.
 
 ## 2. 기술 스택
-- Frontend: React.js, Material-UI
-- Backend: Node.js, Express
-- Database: MongoDB
-- 상태 관리: Context API
-- 스타일링: Styled-components
+- Frontend Framework: React
+- UI Library: Material-UI (MUI)
+- Animation: Framer Motion
+- Styling: Styled Components & MUI Styled Engine
+- Icons: React Feather
 
 ## 3. 디렉토리 구조
 
 ```
-/
-├── client/                     # 프론트엔드 코드
+palette/
+├── client/
 │   ├── src/
-│   │   ├── components/        # React 컴포넌트
-│   │   │   ├── MainLayout.js  # 메인 레이아웃 컴포넌트
-│   │   │   └── sections/      # 섹션별 컴포넌트
-│   │   │       ├── Values.js
-│   │   │       ├── HotPosts.js
-│   │   │       ├── BestOutfit.js
-│   │   │       ├── TodaysPoll.js
-│   │   │       └── BrandDiscounts.js
-│   │   ├── contexts/         # Context API 관련 파일
-│   │   ├── hooks/           # 커스텀 훅
-│   │   ├── services/        # API 서비스
-│   │   ├── styles/          # 전역 스타일
-│   │   └── utils/           # 유틸리티 함수
-│   └── public/              # 정적 파일
-│
-├── server/                  # 백엔드 코드
-│   ├── src/
-│   │   ├── routes/         # API 라우트
-│   │   ├── models/         # 데이터 모델
-│   │   ├── controllers/    # 비즈니스 로직
-│   │   ├── middleware/     # 미들웨어
-│   │   └── utils/          # 유틸리티 함수
-│   └── config/             # 설정 파일
-│
-└── docs/                   # 문서
-    ├── PROJECT_STRUCTURE.md # 프로젝트 구조 문서
-    └── tasks/              # 작업 문서
-
+│   │   ├── components/
+│   │   │   ├── CommunityFeed/
+│   │   │   │   ├── components/
+│   │   │   │   │   ├── AuthorInfo.js      # 작성자 정보 컴포넌트
+│   │   │   │   │   ├── FeedSection.js     # 피드 섹션 컴포넌트
+│   │   │   │   │   └── PostMetrics.js     # 게시물 지표 컴포넌트
+│   │   │   │   ├── CommunityFeed.js       # 메인 피드 컴포넌트
+│   │   │   │   └── CommunityFeed.styles.js # 피드 스타일
+│   │   │   └── MainLayout/
+│   │   │       ├── MainLayout.js          # 메인 레이아웃 컴포넌트
+│   │   │       └── MainLayout.styles.js    # 레이아웃 스타일
+│   │   ├── data/
+│   │   │   └── feedData.js                # 임시 데이터
+│   │   └── theme/
+│   │       └── theme.js                   # 테마 설정
+│   └── public/                            # 정적 파일
+└── docs/                                  # 문서
+    ├── PROJECT_STRUCTURE.md               # 프로젝트 구조 문서
+    └── next-tasks.md                      # 작업 계획 문서
 ```
 
 ## 4. 주요 컴포넌트
 
 ### MainLayout
-- 화면을 35% 왼쪽 패널과 65% 오른쪽 패널로 분할
-- 왼쪽 패널에 회전하는 팔레트 메뉴 표시
-- 오른쪽 패널에 선택된 섹션의 컨텐츠 표시
+- 반응형 레이아웃 구현
+- 좌측 패널 (프로필, 메뉴, 커뮤니티 통계)
+- 스크롤 연동 배경색 전환 효과
+- 모바일 대응
 
-### 섹션 컴포넌트
-1. Values (우리의 가치)
-   - 커뮤니티의 핵심 가치와 목표 표시
-   - 색각 이상자를 위한 지원 방식 설명
+### CommunityFeed
+- OOTD 그리드 레이아웃
+- 인기 게시물 섹션
+- 이벤트 섹션
+- 좋아요/댓글 수 표시
+- 작성자 정보 표시
 
-2. HotPosts (인기 게시물)
-   - 좋아요와 댓글이 많은 게시물 표시
-   - 실시간 업데이트 기능
+### 하위 컴포넌트
+1. PostMetrics
+   - 좋아요 수 표시
+   - 댓글 수 표시
+   - 북마크 기능
 
-3. BestOutfit (오늘의 베스트 착장)
-   - 선정된 베스트 착장 소개
-   - 색상 조합 팁과 설명 포함
+2. AuthorInfo
+   - 작성자 아바타
+   - 작성자 이름
 
-4. TodaysPoll (오늘의 투표)
-   - 패션/색상 관련 투표
-   - 실시간 투표 결과 표시
+3. FeedSection
+   - 섹션 제목
+   - 컨텐츠 그리드 레이아웃
 
-5. BrandDiscounts (브랜드 할인정보)
-   - 협력 브랜드의 할인 정보
-   - 색각 이상자 친화적 제품 추천
+## 5. 스타일 시스템
 
-## 5. 데이터 모델
+### 테마 설정
+- Material-UI 테마 커스터마이즈
+- 반응형 디자인 브레이크포인트
+- 색상 팔레트 정의
+- 타이포그래피 스케일
+
+### 스타일 컴포넌트
+- Styled Components 활용
+- MUI Styled Engine 통합
+- 반응형 스타일링
+- 애니메이션 효과
+
+## 6. 데이터 모델
 
 ### User
 - 기본 정보 (이름, 이메일 등)
@@ -100,7 +106,7 @@
 - 투표 결과
 - 기간 정보
 
-## 6. API 구조
+## 7. API 구조
 
 ### 인증
 - POST /api/auth/register
@@ -124,7 +130,7 @@
 - PUT /api/users/:id
 - GET /api/users/:id/posts
 
-## 7. 포인트/레벨 시스템
+## 8. 포인트/레벨 시스템
 
 ### 포인트 획득
 - 게시물 작성: 10점
