@@ -1,8 +1,8 @@
 const express = require('express');
-const { body } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 const router = express.Router();
 const User = require('../models/User');
-const { protect, sendTokenResponse } = require('../middleware/auth');
+const { auth: protect, generateToken, sendTokenResponse } = require('../middleware/auth');
 
 // 입력 유효성 검사 미들웨어
 const validateRegister = [
@@ -19,11 +19,17 @@ const validateRegister = [
   body('password')
     .isLength({ min: 8 })
     .withMessage('비밀번호는 최소 8자 이상이어야 합니다.')
-    .matches(/[\W]/)
-    .withMessage('비밀번호는 최소 1개의 특수문자를 포함해야 합니다.'),
+    .matches(/[A-Z]/)
+    .withMessage('비밀번호는 대문자를 포함해야 합니다.')
+    .matches(/[a-z]/)
+    .withMessage('비밀번호는 소문자를 포함해야 합니다.')
+    .matches(/[0-9]/)
+    .withMessage('비밀번호는 숫자를 포함해야 합니다.')
+    .matches(/[^A-Za-z0-9]/)
+    .withMessage('비밀번호는 특수문자를 포함해야 합니다.'),
   body('nickname')
-    .isLength({ min: 2, max: 20 })
-    .withMessage('닉네임은 2-20자 사이여야 합니다.')
+    .isLength({ min: 2, max: 30 })
+    .withMessage('닉네임은 2-30자 사이여야 합니다.')
     .custom(async (value) => {
       const user = await User.findOne({ nickname: value });
       if (user) {
@@ -32,13 +38,23 @@ const validateRegister = [
       return true;
     }),
   body('colorVisionType')
-    .isIn(['normal', 'protanopia', 'deuteranopia', 'tritanopia', 'colorWeak'])
+    .isIn(['normal', 'protanopia', 'deuteranopia', 'tritanopia', 'monochromacy'])
     .withMessage('유효하지 않은 색각 유형입니다.')
 ];
 
 // 회원가입
 router.post('/register', validateRegister, async (req, res, next) => {
   try {
+    // 유효성 검사 결과 확인
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: errors.array()[0].msg,
+        errors: errors.array()
+      });
+    }
+
     const { email, password, nickname, colorVisionType, bio } = req.body;
 
     // 사용자 생성
@@ -53,6 +69,14 @@ router.post('/register', validateRegister, async (req, res, next) => {
     // 토큰 생성 및 응답
     sendTokenResponse(user, 201, res);
   } catch (error) {
+    if (error.code === 11000) {
+      // 중복 키 오류 처리
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        success: false,
+        message: `이미 사용 중인 ${field === 'email' ? '이메일' : '닉네임'}입니다.`
+      });
+    }
     next(error);
   }
 });
@@ -83,7 +107,7 @@ router.post('/login', [
     }
 
     // 비밀번호 확인
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -135,7 +159,7 @@ router.put('/password', protect, [
     const user = await User.findById(req.user.id).select('+password');
 
     // 현재 비밀번호 확인
-    const isMatch = await user.comparePassword(req.body.currentPassword);
+    const isMatch = await user.matchPassword(req.body.currentPassword);
     if (!isMatch) {
       return res.status(401).json({
         success: false,

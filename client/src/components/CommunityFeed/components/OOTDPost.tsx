@@ -1,56 +1,33 @@
-import React from 'react';
+import { memo } from 'react';
 import { Typography } from '@mui/material';
-import { 
-  OOTDImageContainer,
-  OOTDImage,
-  OOTDLabel 
-} from '../../MainLayout/MainLayout.styles';
-import { 
-  OOTDCard,
-  OOTDContent,
-  OOTDFooter 
-} from './OOTDPost.styles';
-import PostMetrics from './PostMetrics';
+import { OOTDCard, OOTDContent, OOTDFooter, OOTDImage } from './OOTDPost.styles';
+import { DEFAULT_OOTD_POST } from '../../../constants/community';
 import AuthorInfo from './AuthorInfo';
+import PostMetrics from './PostMetrics';
+import { OOTDPostProps } from '../../../types/community';
 
-interface OOTDPostProps {
-  image?: string;
-  label?: string;
-  title?: string;
-  author?: {
-    name: string;
-    avatar: string;
-  };
-  metrics?: {
-    likes: number;
-    comments: number;
-  };
-}
+const OOTDPost = memo<OOTDPostProps>(({
+  image = DEFAULT_OOTD_POST.image,
+  label = DEFAULT_OOTD_POST.label,
+  title = DEFAULT_OOTD_POST.title,
+  author = DEFAULT_OOTD_POST.author,
+  metrics = DEFAULT_OOTD_POST.metrics,
+}) => (
+  <OOTDCard>
+    <OOTDImage src={image} alt={title} />
+    <OOTDContent>
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="subtitle1" sx={{ mt: 1 }}>
+        {title}
+      </Typography>
+      <AuthorInfo author={author.name} avatar={author.avatar} />
+    </OOTDContent>
+    <OOTDFooter>
+      <PostMetrics {...metrics} />
+    </OOTDFooter>
+  </OOTDCard>
+));
 
-const OOTDPost: React.FC<OOTDPostProps> = ({
-  image = 'https://source.unsplash.com/random/400x400?fashion',
-  label = 'OOTD',
-  title = '오늘의 코디',
-  author = { name: '팔레트', avatar: 'https://source.unsplash.com/random/40x40?portrait' },
-  metrics = { likes: 42, comments: 7 }
-}) => {
-  return (
-    <OOTDCard>
-      <OOTDImageContainer>
-        <OOTDImage src={image} alt={title} />
-        <OOTDLabel>{label}</OOTDLabel>
-      </OOTDImageContainer>
-      <OOTDContent>
-        <AuthorInfo author={author.name} avatar={author.avatar} />
-        <Typography variant="h6" sx={{ mt: 1 }}>
-          {title}
-        </Typography>
-      </OOTDContent>
-      <OOTDFooter>
-        <PostMetrics likes={metrics.likes} comments={metrics.comments} />
-      </OOTDFooter>
-    </OOTDCard>
-  );
-};
-
-export default OOTDPost; 
+export default OOTDPost;

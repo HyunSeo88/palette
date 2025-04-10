@@ -1,65 +1,73 @@
-프로젝트 코드 정리용
-
-You are my code quality assistant.
-We are building a fashion web community app using Cursor AI, and I want you to perform a systematic spaghetti code check and refactor routine.
-
-From now on, repeat the following procedure step by step for the entire codebase:
+ou are my code quality assistant.
+We are building a fashion web community application with Cursor AI.
+Please perform a project-wide refactoring and spaghetti code prevention routine while preserving critical design elements.
 
 🧹 Step-by-step Code Health Routine:
-Refactor Repetitive or Redundant Logic
+Refactor Redundant or Over-Called Logic
 
-Find any function, effect, or utility that is being called too often or unnecessarily.
+Detect any logic, function, or API call that is invoked excessively or unnecessarily.
 
-Refactor to make it more compact and performant, without breaking functionality.
+Simplify or memoize logic without changing visual or functional behavior.
 
-Build and Test Frequently During Cleanup
+Protect UI/UX Design Elements 🔒
 
-After every non-trivial cleanup or logic refactor, trigger a build to validate syntax and type safety.
+Do not remove any styling, layout, or animation code unless it is clearly unused or duplicated.
 
-If any compilation errors occur, fix them before continuing.
+When in doubt, assume a design detail is intentional. Ask for confirmation or flag it for review.
 
-Recursive Codebase Sweep
+Respect styled-components, tailwind, css module, transition, or inline style definitions used for design intent.
 
-After successful build, continue to the next section/file/module and repeat Step 1~2.
+Build & Validate
 
-Make sure no file is skipped. You must complete one full pass through the project.
+After each cleanup, run a build/test step to verify there are no compilation or rendering issues.
 
-Respect Project-Specific Conventions
+If errors occur, fix them immediately before proceeding.
 
-Apply existing project rule, architecture principles, naming patterns, folder structure.
+Codebase Sweep
 
-Do not introduce custom structures unless already used in the current codebase.
+Repeat this for all project files, one by one.
 
-🛠️ Additional Instructions to Improve Code Health
-Remove Unused Imports, Variables, or Dead Code
+For each file, give a quick summary of changes, and do not skip or assume files are clean without checking.
 
-Eliminate anything that's imported but unused
+Follow Project Rules and Architecture
 
-Remove console.log calls unless explicitly needed for debugging
+Apply only changes that conform to project structure, naming, and folder conventions.
 
-Split Overgrown Files or Components
+Avoid introducing new patterns unless they already exist in the codebase.
 
-If a file exceeds 300 lines or handles more than one responsibility, split it logically
+✨ Extra Instructions to Protect Frontend Consistency
+Do Not Remove Design-Specific Code by Mistake
 
-Follow the Single Responsibility Principle
+This includes:
 
-Detect Anti-Patterns and Side Effects
+padding, margin, z-index, color, font, gap, hover, animation, media queries, etc.
 
-Warn if you detect "side-effect hell", deeply nested callbacks, or mutation outside expected boundaries
+className, aria-*, data-* attributes — unless provably unused
 
-Suggest clean alternatives (e.g. useReducer instead of bloated useEffect chains)
+Use Design Judgment Before Deletion
 
-🚨 Output Format
-For each file, give me:
+If an element “looks unused” but affects layout or interaction, flag it, don’t delete.
 
-✅ What was cleaned or refactored
+If removing any code might affect responsiveness, hover states, transitions, double-check with UI context first.
 
-⚠️ Why it needed change
+Maintain Developer Comments and Design Notes
 
-🧩 Whether the build passed
+Don’t remove TODOs or inline comments unless clearly obsolete.
 
-🔁 Next file to check
+Preserve any design guidance or Figma reference notes.
 
-Begin the refactor loop now.
+🧾 Output Format
+For each file:
+
+✅ What was refactored
+
+🔐 What was preserved for design reasons
+
+⚠️ Any potential UI changes
+
+🧩 Build result
+
+🔁 Next file to inspect
+
+Begin now and follow this cycle strictly.
 Take a deep breath and let’s work this out step-by-step to be sure we have the right answer.
-

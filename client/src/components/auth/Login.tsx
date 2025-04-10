@@ -9,7 +9,9 @@ import {
   Typography,
   CircularProgress,
   Alert,
+  IconButton,
 } from '@mui/material';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -44,6 +46,7 @@ const Login: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -52,30 +55,61 @@ const Login: React.FC = () => {
     },
   });
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     try {
-      clearError();
+      if (clearError) {
+        clearError();
+      }
+      console.log('Attempting login...'); // 디버깅용 로그
       const success = await login(data.email, data.password, false);
+      console.log('Login result:', success); // 디버깅용 로그
+      
       if (success) {
-        // Redirect to the page user tried to access, or home
-        const from = (location.state as any)?.from?.pathname || '/';
-        navigate(from, { replace: true });
+        console.log('Login successful, redirecting...'); // 디버깅용 로그
+        navigate('/', { replace: true });
+      } else {
+        setError('root', {
+          type: 'manual',
+          message: '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.',
+        });
       }
     } catch (error) {
-      // Error is handled by AuthContext
-      console.error('Login failed:', error);
+      console.error('Login error:', error); // 디버깅용 로그
+      setError('root', {
+        type: 'manual',
+        message: '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      });
     }
   };
 
   return (
     <FormContainer maxWidth="xs">
-      <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-        로그인
-      </Typography>
+      <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', mb: 3, position: 'relative' }}>
+        <IconButton
+          onClick={handleBack}
+          sx={{ position: 'absolute', left: 0 }}
+          aria-label="뒤로 가기"
+        >
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography component="h1" variant="h5" sx={{ width: '100%', textAlign: 'center' }}>
+          로그인
+        </Typography>
+      </Box>
       
       {authError && (
         <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
           {authError}
+        </Alert>
+      )}
+
+      {errors.root && (
+        <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+          {errors.root.message}
         </Alert>
       )}
 

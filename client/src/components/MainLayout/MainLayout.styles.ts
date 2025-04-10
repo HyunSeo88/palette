@@ -1,282 +1,255 @@
 import { styled } from '@mui/material/styles';
-import { Box, Container, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import { COMMON_STYLES } from '../../theme';
+import { alpha } from '@mui/material/styles';
+import { Theme } from '@mui/material/styles';
 
-interface StyledContainerProps {
-  bgcolor?: string;
+const {
+  card: cardStyle,
+  glass: glassStyle,
+  gridBreakpoints
+} = COMMON_STYLES;
+
+// Style constants
+const STYLE_CONSTANTS = {
+  HEADER_HEIGHT: '64px',
+  PANEL_WIDTH: '280px',
+  BREAKPOINT_MOBILE: '600px',
+  COLORS: {
+    PRIMARY: '#2D3748',
+    BORDER: 'rgba(0,0,0,0.1)',
+    SCROLLBAR_TRACK: '#f1f1f1',
+    SCROLLBAR_THUMB: '#888',
+    WHITE: '#fff',
+  },
+  SPACING: {
+    XS: '8px',
+    SM: '12px',
+    MD: '24px',
+    LG: '48px',
+  },
+  SHADOWS: {
+    HEADER: '0 2px 4px rgba(0,0,0,0.1)',
+    CONTENT: '0 4px 12px rgba(0,0,0,0.1)',
+  },
+} as const;
+
+// Shared styles
+const flexCenter = {
+  display: 'flex',
+  alignItems: 'center',
+};
+
+const scrollbarStyle = {
+  '&::-webkit-scrollbar': {
+    width: '8px',
+  },
+  '&::-webkit-scrollbar-track': {
+    background: '#f1f1f1',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    background: '#888',
+    borderRadius: '4px',
+  },
+};
+
+interface LeftPanelProps {
+  open: boolean;
 }
 
 interface MenuItemProps {
-  active?: boolean;
+  isactive: string;
   color: string;
+}
+
+interface MenuIconProps {
+  color?: string;
 }
 
 export const LayoutContainer = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
-  minHeight: '100vh',
-  width: '100%',
-  backgroundColor: '#FAFAFA',
+  height: '100vh',
+  overflow: 'hidden',
 });
 
-export const TopFixedArea = styled(Box)({
+export const TopFixedArea = styled(Box)(({ theme }) => ({
   position: 'fixed',
   top: 0,
   left: 0,
   right: 0,
   zIndex: 1000,
-  backgroundColor: '#fff',
-  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
-});
+  backgroundColor: theme.palette.background.paper,
+  boxShadow: theme.shadows[1],
+}));
 
 export const Header = styled(Box)({
-  display: 'flex',
+  ...flexCenter,
   justifyContent: 'space-between',
-  alignItems: 'center',
   padding: '12px 24px',
-  borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
   height: '64px',
 });
 
 export const Logo = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-  fontSize: '28px',
-  fontWeight: 700,
-  color: '#2D3748',
+  ...flexCenter,
+  gap: '8px',
+  fontSize: '24px',
+  fontWeight: 600,
   cursor: 'pointer',
-  '& svg': {
-    width: '28px',
-    height: '28px',
-    color: '#4A90E2',
-    transform: 'rotate(-45deg)',
-    filter: 'drop-shadow(0 2px 4px rgba(74, 144, 226, 0.2))',
-  },
-  '&:hover svg': {
-    transform: 'rotate(-45deg) scale(1.1)',
-    transition: 'transform 0.2s ease',
-  },
-});
-
-export const HeaderIcons = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '16px',
-  '& .MuiIconButton-root': {
-    color: '#4A5568',
-    '&:hover': {
-      backgroundColor: 'rgba(74, 144, 226, 0.08)',
-    },
-  },
+  color: '#2D3748',
 });
 
 export const MainContent = styled(Box)({
   display: 'flex',
-  position: 'relative',
   height: 'calc(100vh - 64px)',
   marginTop: '64px',
-  gap: '24px',
-  overflow: 'hidden',
 });
 
-export const LeftPanel = styled(Box)({
+export const LeftPanel = styled(Box)<LeftPanelProps>(({ open, theme }) => ({
   width: '280px',
-  backgroundColor: '#fff',
-  padding: '24px',
-  height: 'calc(100vh - 64px)',
-  position: 'fixed',
-  left: 0,
-  top: '64px',
-  overflowY: 'auto',
-  borderRight: '1px solid rgba(0, 0, 0, 0.06)',
+  flexShrink: 0,
   display: 'flex',
   flexDirection: 'column',
-  gap: '16px',
-});
+  borderRight: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+  transition: 'transform 0.3s ease',
+  [`@media (max-width: ${theme.breakpoints.values.sm}px)`]: {
+    position: 'fixed',
+    top: '64px',
+    bottom: 0,
+    transform: open ? 'translateX(0)' : 'translateX(-100%)',
+    zIndex: 1000,
+  },
+}));
 
-export const MenuItem = styled(Box)<MenuItemProps>(({ active, color }) => ({
-  padding: '12px 16px',
-  marginBottom: '8px',
-  borderRadius: '12px',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease',
+export const MenuItem = styled(Box)<MenuItemProps>(({ theme, isactive, color }) => ({
   display: 'flex',
   alignItems: 'center',
-  backgroundColor: active ? `${color}10` : 'transparent',
+  gap: theme.spacing(1.5),
+  padding: theme.spacing(1.5, 2),
+  cursor: 'pointer',
+  borderRadius: theme.shape.borderRadius,
+  transition: 'all 0.3s ease',
+  position: 'relative',
+  overflow: 'hidden',
+
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '4px',
+    backgroundColor: color,
+    opacity: isactive === 'true' ? 1 : 0,
+    transition: 'opacity 0.3s ease',
+  },
+
   '& .MuiTypography-root': {
-    color: active ? color : '#4A5568',
-    fontWeight: active ? 600 : 400,
+    transition: 'color 0.3s ease',
   },
+
+  '& .MuiTypography-body1': {
+    color: isactive === 'true' ? color : theme.palette.text.primary,
+    fontWeight: isactive === 'true' ? 600 : 400,
+  },
+
   '&:hover': {
-    backgroundColor: `${color}08`,
-  },
-}));
-
-export const MenuIcon = styled(Box)<{ color: string }>(({ color }) => ({
-  width: '10px',
-  height: '10px',
-  borderRadius: '50%',
-  marginRight: '12px',
-  backgroundColor: color,
-  boxShadow: `0 0 0 2px ${color}20`,
-}));
-
-export const CommunityStats = styled(Box)({
-  marginTop: 'auto',
-  padding: '20px',
-  backgroundColor: '#F7FAFC',
-  borderRadius: '16px',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-  '& .MuiTypography-subtitle2': {
-    color: '#2D3748',
-    fontWeight: 600,
-    marginBottom: '16px',
-  },
-  '& .MuiBox-root': {
-    marginBottom: '8px',
-    '&:last-child': {
-      marginBottom: 0,
+    backgroundColor: alpha(color, 0.08),
+    '& .MuiTypography-body1': {
+      color: color,
+    },
+    '&::before': {
+      opacity: 0.5,
     },
   },
+
+  ...(isactive === 'true' && {
+    backgroundColor: alpha(color, 0.08),
+  }),
+}));
+
+export const MenuIcon = styled('div')<{ color?: string }>(({ theme, color }) => ({
+  width: 8,
+  height: 8,
+  borderRadius: '50%',
+  backgroundColor: color || theme.palette.primary.main,
+  flexShrink: 0,
+}));
+
+export const HeaderIcons = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: STYLE_CONSTANTS.SPACING.XS,
 });
 
-export const RightPanel = styled(Box)<StyledContainerProps>(({ bgcolor }) => ({
+export const CommunityStats = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: STYLE_CONSTANTS.SPACING.XS,
+});
+
+export const RightPanel = styled(Box)({
   flex: 1,
-  marginLeft: '280px',
-  backgroundColor: bgcolor || '#ffffff',
-  transition: 'background-color 0.3s ease',
-  padding: 0,
-  height: 'calc(100vh - 64px)',
-  borderRadius: '24px 0 0 0',
-  overflowY: 'auto',
+  overflow: 'auto',
   scrollBehavior: 'smooth',
   scrollSnapType: 'y mandatory',
-  position: 'relative',
-  '&::-webkit-scrollbar': {
-    width: '8px',
-  },
-  '&::-webkit-scrollbar-track': {
-    background: 'transparent',
-  },
-  '&::-webkit-scrollbar-thumb': {
-    background: 'rgba(0, 0, 0, 0.2)',
-    borderRadius: '4px',
-  },
-}));
-
-export const ValueContent = styled(Box)({
-  maxWidth: '1200px',
-  margin: '0 auto',
-  borderRadius: '16px',
-  overflow: 'hidden',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-  '& img': {
-    width: '100%',
-    height: 'auto',
-    display: 'block',
-  },
+  ...scrollbarStyle,
 });
 
-export const CardGrid = styled(Box)({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-  gap: '24px',
-  padding: '24px',
-});
-
-export const TextCard = styled(Box)({
-  backgroundColor: '#fff',
-  borderRadius: '12px',
-  padding: '16px',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-  transition: 'transform 0.2s ease',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-  },
-});
-
-export const OOTDImageContainer = styled(Box)({
-  position: 'relative',
-  width: '100%',
-  paddingTop: '100%',
-  borderRadius: '12px',
-  overflow: 'hidden',
-  marginBottom: '12px',
-});
-
-export const OOTDImage = styled('img')({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-});
-
-export const OOTDLabel = styled(Typography)({
-  position: 'absolute',
-  bottom: '12px',
-  left: '12px',
-  color: '#fff',
-  backgroundColor: 'rgba(0, 0, 0, 0.6)',
-  padding: '4px 8px',
-  borderRadius: '4px',
-  fontSize: '14px',
-});
-
-export const Section = styled(Box)<StyledContainerProps>(({ bgcolor }) => ({
-  height: 'calc(100vh - 64px)',
-  minHeight: 'calc(100vh - 64px)',
-  width: '100%',
-  backgroundColor: bgcolor || '#ffffff',
+export const Section = styled(Box)({
+  minHeight: `calc(100vh - ${STYLE_CONSTANTS.HEADER_HEIGHT})`,
+  height: `calc(100vh - ${STYLE_CONSTANTS.HEADER_HEIGHT})`,
   display: 'flex',
-  flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '48px 24px',
-  scrollSnapAlign: 'start',
-  scrollSnapStop: 'always',
+  padding: STYLE_CONSTANTS.SPACING.LG,
   position: 'relative',
   overflow: 'hidden',
-  marginTop: 0,
-  marginBottom: 0,
-  '&:first-of-type': {
-    marginTop: 0,
-  },
-  '&:last-child': {
-    marginBottom: 0,
-  },
-}));
-
-export const SectionTitle = styled(Typography)({
-  fontSize: '32px',
-  fontWeight: 700,
-  color: '#2D3748',
-  marginBottom: '32px',
-  textAlign: 'center',
-  opacity: 0,
-  transform: 'translateY(20px)',
-  transition: 'opacity 0.5s ease, transform 0.5s ease',
-  '&.visible': {
-    opacity: 1,
-    transform: 'translateY(0)',
-  },
+  flex: `0 0 calc(100vh - ${STYLE_CONSTANTS.HEADER_HEIGHT})`,
+  scrollSnapAlign: 'start',
 });
 
 export const SectionContent = styled(Box)({
   width: '100%',
   maxWidth: '1200px',
   margin: '0 auto',
-  opacity: 0,
-  transform: 'translateY(20px)',
-  transition: 'opacity 0.5s ease, transform 0.5s ease',
+  position: 'relative',
+  zIndex: 1,
+  height: 'auto',
+});
+
+export const SectionTitle = styled(Typography)({
+  marginBottom: STYLE_CONSTANTS.SPACING.LG,
+  transition: 'opacity 0.5s ease',
+});
+
+export const ValueContent = styled(Box)({
+  width: '100%',
   display: 'flex',
-  flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  flex: 1,
-  '&.visible': {
-    opacity: 1,
-    transform: 'translateY(0)',
+  maxHeight: `calc(100vh - ${STYLE_CONSTANTS.HEADER_HEIGHT} - 120px)`,
+  padding: '24px',
+  
+  '& img': {
+    width: 'auto',
+    maxWidth: '100%',
+    height: 'auto',
+    maxHeight: `calc(100vh - ${STYLE_CONSTANTS.HEADER_HEIGHT} - 180px)`,
+    objectFit: 'contain',
+    borderRadius: '16px',
+    boxShadow: STYLE_CONSTANTS.SHADOWS.CONTENT,
   },
-}); 
+});
+
+export const CardGrid = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+  gap: theme.spacing(3),
+  padding: theme.spacing(3),
+  width: '100%',
+  maxWidth: '1200px',
+  margin: '0 auto',
+})); 

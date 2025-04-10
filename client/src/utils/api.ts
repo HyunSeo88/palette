@@ -1,14 +1,15 @@
 import axios from 'axios';
-import { getAuthHeader, setTokens, removeTokens, getRefreshToken } from './tokenUtils';
+import { getAuthHeader, setTokens, removeTokens, getTokens } from './tokenUtils';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
-  },
+    'Accept': 'application/json'
+  }
 });
 
 // Request interceptor
@@ -30,37 +31,45 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is 401 and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        // Try to refresh token
-        const refreshToken = getRefreshToken();
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-
-        const response = await axios.post(`${API_URL}/auth/refresh-token`, {
-          refreshToken,
-        });
-
-        if (response.data.success) {
-          const { token, refreshToken: newRefreshToken } = response.data;
-          setTokens(token, newRefreshToken);
-          
-          // Retry original request
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        // If refresh fails, logout
-        removeTokens();
-        throw refreshError;
-      }
+    // If error is not 401 or request has already been retried, reject
+    if (error.response?.status !== 401 || originalRequest._retry) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    originalRequest._retry = true;
+
+    try {
+      // Get refresh token
+      const { refreshToken } = getTokens();
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      // Try to refresh the token
+      const response = await axios.post(`${API_URL}/api/auth/refresh`, {
+        refreshToken
+      });
+
+      if (response.data.success) {
+        const { token: newAccessToken, refreshToken: newRefreshToken } = response.data;
+        
+        // Store new tokens
+        setTokens(newAccessToken, newRefreshToken, true);
+        
+        // Update Authorization header
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        
+        // Retry original request
+        return api(originalRequest);
+      } else {
+        throw new Error('Token refresh failed');
+      }
+    } catch (refreshError) {
+      console.error('Token refresh failed:', refreshError);
+      // If refresh fails, remove tokens and reject
+      removeTokens();
+      return Promise.reject(error);
+    }
   }
 );
 

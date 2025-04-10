@@ -19,9 +19,14 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  IconButton,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
+import { 
+  Check as CheckIcon, 
+  Close as CloseIcon,
+  ArrowBack as ArrowBackIcon,
+} from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { registerSchema, type RegisterFormData } from '../../utils/validationSchemas';
 import SocialLogin from './SocialLogin';
@@ -103,6 +108,10 @@ const Register = () => {
 
   const password = watch('password');
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsSubmitting(true);
@@ -131,13 +140,42 @@ const Register = () => {
 
   return (
     <FormContainer maxWidth="xs">
-      <Typography component="h1" variant="h5">
-        회원가입
-      </Typography>
+      <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', mb: 3, position: 'relative' }}>
+        <IconButton
+          onClick={handleBack}
+          sx={{ position: 'absolute', left: 0 }}
+          aria-label="뒤로 가기"
+        >
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography component="h1" variant="h5" sx={{ width: '100%', textAlign: 'center' }}>
+          회원가입
+        </Typography>
+      </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
-          {error}
+        <Alert 
+          severity="error" 
+          sx={{ mt: 2, width: '100%' }}
+          action={
+            error.includes('이미 사용 중인 이메일') && (
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => navigate('/login')}
+              >
+                로그인하기
+              </Button>
+            )
+          }
+        >
+          {error.includes('이미 사용 중인 이메일') ? (
+            <>
+              이미 가입된 이메일 주소입니다. 로그인하시거나 다른 이메일로 가입해주세요.
+            </>
+          ) : (
+            error
+          )}
         </Alert>
       )}
 
@@ -203,7 +241,7 @@ const Register = () => {
             labelId="colorVisionType-label"
             id="colorVisionType"
             label="색각이상 유형"
-            defaultValue=""
+            defaultValue="normal"
           >
             <MenuItem value="normal">일반</MenuItem>
             <MenuItem value="protanopia">제1색각이상 (적색맹)</MenuItem>

@@ -6,35 +6,25 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, '이메일은 필수 입력 항목입니다.'],
     unique: true,
-    lowercase: true,
     trim: true,
-    validate: {
-      validator: function(v) {
-        return /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(v);
-      },
-      message: '유효한 이메일 주소를 입력해주세요.'
-    }
+    lowercase: true,
   },
   password: {
     type: String,
     required: [true, '비밀번호는 필수 입력 항목입니다.'],
     minlength: [8, '비밀번호는 최소 8자 이상이어야 합니다.'],
-    select: false
   },
   nickname: {
     type: String,
     required: [true, '닉네임은 필수 입력 항목입니다.'],
+    trim: true,
     minlength: [2, '닉네임은 최소 2자 이상이어야 합니다.'],
-    maxlength: [20, '닉네임은 최대 20자까지 가능합니다.'],
-    trim: true
+    maxlength: [30, '닉네임은 최대 30자까지 가능합니다.'],
   },
   colorVisionType: {
     type: String,
-    required: [true, '색각 유형은 필수 선택 항목입니다.'],
-    enum: {
-      values: ['normal', 'protanopia', 'deuteranopia', 'tritanopia', 'colorWeak'],
-      message: '유효하지 않은 색각 유형입니다.'
-    }
+    enum: ['normal', 'protanopia', 'deuteranopia', 'tritanopia', 'monochromacy'],
+    default: 'normal',
   },
   profileImage: {
     type: String,
@@ -42,7 +32,8 @@ const userSchema = new mongoose.Schema({
   },
   bio: {
     type: String,
-    maxlength: [200, '자기소개는 최대 200자까지 가능합니다.']
+    maxlength: [200, '자기소개는 최대 200자까지 가능합니다.'],
+    default: '',
   },
   role: {
     type: String,
@@ -53,19 +44,23 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+  emailVerificationToken: String,
+  emailVerificationExpires: Date,
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
+}, {
+  timestamps: true,
 });
 
-// 비밀번호 암호화 미들웨어
+// 비밀번호 해싱 미들웨어
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password')) {
+    return next();
+  }
   
   try {
     const salt = await bcrypt.genSalt(10);
@@ -76,20 +71,10 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// 비밀번호 검증 메서드
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  try {
-    return await bcrypt.compare(candidatePassword, this.password);
-  } catch (error) {
-    throw new Error(error);
-  }
+// 비밀번호 확인 메서드
+userSchema.methods.matchPassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
-
-// updatedAt 자동 업데이트
-userSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
 
 const User = mongoose.model('User', userSchema);
 

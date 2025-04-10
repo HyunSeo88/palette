@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import api from '../utils/api';
 import { setTokens, removeTokens } from '../utils/tokenUtils';
 import { User as UserType, ColorVisionType } from '../types/user';
@@ -45,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -52,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkAuth = async () => {
     try {
-      const response = await api.get<{ success: boolean; data: User }>('/auth/me');
+      const response = await api.get<{ success: boolean; data: User }>('/api/auth/me');
       if (response.data.success) {
         setUser(response.data.data);
       }
@@ -64,57 +65,111 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string, rememberMe: boolean): Promise<boolean> => {
-    try {
-      setError(null);
-      const response = await api.post<{ success: boolean; token: string; refreshToken: string }>('/auth/login', {
-        email,
-        password,
-      });
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
 
-      if (response.data.success) {
-        const { token, refreshToken } = response.data;
-        setTokens(token, refreshToken, rememberMe ? 'local' : 'session');
-        await checkAuth();
-        return true;
+  const login = useCallback(async (email: string, password: string, rememberMe: boolean): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await api.post('/api/auth/login', { email, password });
+      
+      // 서버 응답에서 토큰 추출
+      const { token: accessToken, refreshToken } = response.data;
+      
+      if (!accessToken || !refreshToken) {
+        setError('로그인에 실패했습니다. 서버 응답이 올바르지 않습니다.');
+        setIsLoading(false);
+        return false;
       }
-      return false;
+
+      // 토큰 저장
+      setTokens(accessToken, refreshToken, rememberMe);
+      
+      // 사용자 정보 가져오기
+      try {
+        const userResponse = await api.get('/api/auth/me');
+        if (userResponse.data.success) {
+          setUser(userResponse.data.data);
+          setIsLoading(false);
+          return true;
+        } else {
+          throw new Error('Failed to get user data');
+        }
+      } catch (userError) {
+        console.error('Failed to fetch user info:', userError);
+        removeTokens();
+        setError('사용자 정보를 가져오는데 실패했습니다.');
+        setIsLoading(false);
+        return false;
+      }
     } catch (error: any) {
-      const message = error.response?.data?.message || '로그인 중 오류가 발생했습니다.';
-      setError(message);
-      throw new Error(message);
+      console.error('Login request failed:', error);
+      
+      if (error.response?.status === 401) {
+        setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+      } else if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError('로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      }
+      
+      setIsLoading(false);
+      return false;
     }
-  };
+  }, []);
 
   const register = async (userData: RegisterData): Promise<boolean> => {
     try {
       setError(null);
-      const response = await api.post<{ success: boolean; token: string; refreshToken: string }>('/auth/register', userData);
+      const response = await api.post<{ success: boolean; token: string; refreshToken: string }>('/api/auth/register', userData);
 
-      if (response.data.success) {
-        const { token, refreshToken } = response.data;
-        setTokens(token, refreshToken);
-        await checkAuth();
-        return true;
+      console.log('Register response:', response.data); // 디버깅용
+
+      if (response.data.success && response.data.token && response.data.refreshToken) {
+        // 토큰 저장
+        setTokens(response.data.token, response.data.refreshToken, true);
+        
+        // 사용자 정보 요청 전에 잠시 대기
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // 토큰이 저장된 후에 사용자 정보 요청
+        try {
+          const userResponse = await api.get<{ success: boolean; data: User }>('/api/auth/me');
+          if (userResponse.data.success) {
+            setUser(userResponse.data.data);
+            return true;
+          }
+        } catch (userError: any) {
+          console.error('Failed to fetch user info after registration:', userError);
+          removeTokens();
+          setError('회원가입은 성공했지만 사용자 정보를 가져오는데 실패했습니다.');
+          return false;
+        }
       }
+      
+      setError('회원가입 응답에 토큰이 없습니다.');
       return false;
     } catch (error: any) {
+      console.error('Registration failed:', error);
       const message = error.response?.data?.message || '회원가입 중 오류가 발생했습니다.';
       setError(message);
-      throw new Error(message);
+      return false;
     }
   };
 
   const socialLogin = async (provider: 'google' | 'kakao', token: string): Promise<boolean> => {
     try {
       setError(null);
-      const response = await api.post<{ success: boolean; token: string; refreshToken: string; isNewUser: boolean }>(`/auth/${provider}`, {
+      const response = await api.post<{ success: boolean; token: string; refreshToken: string; isNewUser: boolean }>(`/api/auth/${provider}`, {
         token,
       });
 
       if (response.data.success) {
         const { token: authToken, refreshToken, isNewUser } = response.data;
-        setTokens(authToken, refreshToken);
+        setTokens(authToken, refreshToken, true);
         await checkAuth();
         return isNewUser;
       }
@@ -126,10 +181,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     removeTokens();
     setUser(null);
-  };
+  }, []);
 
   const updateProfile = async (userData: Partial<User>): Promise<boolean> => {
     try {
@@ -151,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetPassword = async (email: string): Promise<boolean> => {
     try {
       setError(null);
-      const response = await api.post<{ success: boolean }>('/auth/reset-password', { email });
+      const response = await api.post<{ success: boolean }>('/api/auth/reset-password', { email });
       return response.data.success;
     } catch (error: any) {
       const message = error.response?.data?.message || '비밀번호 재설정 요청 중 오류가 발생했습니다.';
@@ -163,7 +218,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     try {
       setError(null);
-      const response = await api.put<{ success: boolean }>('/auth/password', {
+      const response = await api.put<{ success: boolean }>('/api/auth/password', {
         currentPassword,
         newPassword,
       });
@@ -178,7 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const verifyEmail = async (token: string): Promise<boolean> => {
     try {
       setError(null);
-      const response = await api.post<{ success: boolean }>('/auth/verify-email', { token });
+      const response = await api.post<{ success: boolean }>('/api/auth/verify-email', { token });
       return response.data.success;
     } catch (error: any) {
       const message = error.response?.data?.message || '이메일 인증 중 오류가 발생했습니다.';
@@ -190,7 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resendVerificationEmail = async (email: string): Promise<boolean> => {
     try {
       setError(null);
-      const response = await api.post<{ success: boolean }>('/auth/resend-verification', { email });
+      const response = await api.post<{ success: boolean }>('/api/auth/resend-verification', { email });
       return response.data.success;
     } catch (error: any) {
       const message = error.response?.data?.message || '인증 이메일 재발송 중 오류가 발생했습니다.';
@@ -199,13 +254,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const clearError = () => setError(null);
-
   const value = {
     user,
     loading,
     isAuthenticated: !!user,
     error,
+    isLoading,
     login,
     register,
     logout,

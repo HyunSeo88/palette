@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -24,11 +24,7 @@ export const AuthProvider = ({ children }) => {
     
     if (token) {
       try {
-        // API 요청에 토큰 포함
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // 현재 사용자 정보 조회
-        const response = await axios.get('/api/auth/me');
+        const response = await api.get('/auth/me');
         
         if (response.data.success) {
           setUser(response.data.data);
@@ -44,23 +40,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, rememberMe) => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await api.post('/auth/login', { email, password });
       
       if (response.data.success) {
         const { token } = response.data;
         
-        // 토큰 저장
+        // Store token
         if (rememberMe) {
           localStorage.setItem('token', token);
         } else {
           sessionStorage.setItem('token', token);
         }
         
-        // API 요청에 토큰 포함
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // 사용자 정보 설정
-        const userResponse = await axios.get('/api/auth/me');
+        // Get user info
+        const userResponse = await api.get('/auth/me');
         setUser(userResponse.data.data);
         
         return true;
@@ -73,19 +66,16 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await api.post('/auth/register', userData);
       
       if (response.data.success) {
         const { token } = response.data;
         
-        // 토큰 저장
+        // Store token
         localStorage.setItem('token', token);
         
-        // API 요청에 토큰 포함
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // 사용자 정보 설정
-        const userResponse = await axios.get('/api/auth/me');
+        // Get user info
+        const userResponse = await api.get('/auth/me');
         setUser(userResponse.data.data);
         
         return true;
@@ -97,20 +87,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // 토큰 제거
+    // Remove tokens
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
     
-    // API 요청 헤더에서 토큰 제거
-    delete axios.defaults.headers.common['Authorization'];
-    
-    // 사용자 정보 초기화
+    // Reset user state
     setUser(null);
   };
 
   const updateProfile = async (userData) => {
     try {
-      const response = await axios.put(`/api/users/${user._id}`, userData);
+      const response = await api.put(`/users/${user._id}`, userData);
       
       if (response.data.success) {
         setUser(response.data.data);
