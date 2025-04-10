@@ -1,0 +1,65 @@
+프로젝트 코드 정리용
+
+You are my code quality assistant.
+We are building a fashion web community app using Cursor AI, and I want you to perform a systematic spaghetti code check and refactor routine.
+
+From now on, repeat the following procedure step by step for the entire codebase:
+
+🧹 Step-by-step Code Health Routine:
+Refactor Repetitive or Redundant Logic
+
+Find any function, effect, or utility that is being called too often or unnecessarily.
+
+Refactor to make it more compact and performant, without breaking functionality.
+
+Build and Test Frequently During Cleanup
+
+After every non-trivial cleanup or logic refactor, trigger a build to validate syntax and type safety.
+
+If any compilation errors occur, fix them before continuing.
+
+Recursive Codebase Sweep
+
+After successful build, continue to the next section/file/module and repeat Step 1~2.
+
+Make sure no file is skipped. You must complete one full pass through the project.
+
+Respect Project-Specific Conventions
+
+Apply existing project rule, architecture principles, naming patterns, folder structure.
+
+Do not introduce custom structures unless already used in the current codebase.
+
+🛠️ Additional Instructions to Improve Code Health
+Remove Unused Imports, Variables, or Dead Code
+
+Eliminate anything that's imported but unused
+
+Remove console.log calls unless explicitly needed for debugging
+
+Split Overgrown Files or Components
+
+If a file exceeds 300 lines or handles more than one responsibility, split it logically
+
+Follow the Single Responsibility Principle
+
+Detect Anti-Patterns and Side Effects
+
+Warn if you detect "side-effect hell", deeply nested callbacks, or mutation outside expected boundaries
+
+Suggest clean alternatives (e.g. useReducer instead of bloated useEffect chains)
+
+🚨 Output Format
+For each file, give me:
+
+✅ What was cleaned or refactored
+
+⚠️ Why it needed change
+
+🧩 Whether the build passed
+
+🔁 Next file to check
+
+Begin the refactor loop now.
+Take a deep breath and let’s work this out step-by-step to be sure we have the right answer.
+

@@ -10,57 +10,46 @@ import { ootdItems, hotPosts, events } from '../../data/feedData';
 import PostMetrics from './components/PostMetrics';
 import AuthorInfo from './components/AuthorInfo';
 import FeedSection from './components/FeedSection';
-import { SectionDividerBox } from './CommunityFeed.styles';
+import { SectionDividerBox, FeedContainer } from './CommunityFeed.styles';
+import TextPost from './components/TextPost';
+import OOTDPost from './components/OOTDPost';
 
 const SectionDivider = () => <SectionDividerBox />;
 
-const CommunityFeed = () => {
+interface CommunityFeedProps {
+  sectionType?: 'hot-posts' | 'ootd' | 'voting' | 'events';
+}
+
+const CommunityFeed: React.FC<CommunityFeedProps> = ({ sectionType }) => {
+  const renderContent = () => {
+    switch (sectionType) {
+      case 'ootd':
+        return (
+          <>
+            <OOTDPost />
+            <OOTDPost />
+            <OOTDPost />
+          </>
+        );
+      case 'hot-posts':
+      case 'voting':
+      case 'events':
+        return (
+          <>
+            <TextPost />
+            <TextPost />
+            <TextPost />
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Box sx={{ p: 4 }}>
-      {/* OOTD Section */}
-      <FeedSection title="OOTD">
-        {ootdItems.map((item) => (
-          <Box key={item.id} sx={{ position: 'relative' }}>
-            <OOTDImageContainer>
-              <OOTDImage src={item.image} alt={item.label} />
-              <OOTDLabel>{item.label}</OOTDLabel>
-            </OOTDImageContainer>
-            <PostMetrics likes={item.likes} comments={item.comments} />
-          </Box>
-        ))}
-      </FeedSection>
-
-      <SectionDivider />
-
-      {/* Hot Posts Section */}
-      <FeedSection title="Hot Posts">
-        {hotPosts.map((post) => (
-          <TextCard key={post.id}>
-            <AuthorInfo author={post.author} avatar={post.avatar} />
-            <Typography variant="h6">{post.title}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {post.content}
-            </Typography>
-            <PostMetrics likes={post.likes} comments={post.comments} />
-          </TextCard>
-        ))}
-      </FeedSection>
-
-      <SectionDivider />
-
-      {/* Events Section */}
-      <FeedSection title="Events">
-        {events.map((event) => (
-          <TextCard key={event.id}>
-            <Typography variant="h6">{event.title}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {event.content}
-            </Typography>
-            <PostMetrics likes={event.likes} comments={event.comments} />
-          </TextCard>
-        ))}
-      </FeedSection>
-    </Box>
+    <FeedContainer>
+      {renderContent()}
+    </FeedContainer>
   );
 };
 
