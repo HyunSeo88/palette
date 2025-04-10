@@ -17,24 +17,34 @@ palette/
 ├── client/
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── auth/
+│   │   │   │   ├── Login.tsx        # 로그인 컴포넌트
+│   │   │   │   └── Register.tsx     # 회원가입 컴포넌트
 │   │   │   ├── CommunityFeed/
 │   │   │   │   ├── components/
-│   │   │   │   │   ├── AuthorInfo.js      # 작성자 정보 컴포넌트
-│   │   │   │   │   ├── FeedSection.js     # 피드 섹션 컴포넌트
-│   │   │   │   │   └── PostMetrics.js     # 게시물 지표 컴포넌트
-│   │   │   │   ├── CommunityFeed.js       # 메인 피드 컴포넌트
-│   │   │   │   └── CommunityFeed.styles.js # 피드 스타일
+│   │   │   │   │   ├── OOTDPost.tsx      # OOTD 포스트 컴포넌트
+│   │   │   │   │   └── OOTDPost.styles.ts # OOTD 포스트 스타일
 │   │   │   └── MainLayout/
-│   │   │       ├── MainLayout.js          # 메인 레이아웃 컴포넌트
-│   │   │       └── MainLayout.styles.js    # 레이아웃 스타일
-│   │   ├── data/
-│   │   │   └── feedData.js                # 임시 데이터
+│   │   │       ├── MainLayout.tsx          # 메인 레이아웃 컴포넌트
+│   │   │       └── MainLayout.styles.ts    # 레이아웃 스타일
+│   │   ├── contexts/
+│   │   │   └── AuthContext.tsx     # 인증 컨텍스트
+│   │   ├── utils/
+│   │   │   ├── api.ts             # API 설정
+│   │   │   └── tokenUtils.ts      # 토큰 관리
 │   │   └── theme/
-│   │       └── theme.js                   # 테마 설정
-│   └── public/                            # 정적 파일
-└── docs/                                  # 문서
-    ├── PROJECT_STRUCTURE.md               # 프로젝트 구조 문서
-    └── next-tasks.md                      # 작업 계획 문서
+│   │       └── theme.ts           # 테마 설정
+│   ├── .env                      # 환경 변수
+│   └── public/                   # 정적 파일
+└── server/
+    ├── src/
+    │   ├── routes/
+    │   │   └── auth.js           # 인증 라우트
+    │   ├── middleware/
+    │   │   └── auth.js           # 인증 미들웨어
+    │   └── models/
+    │       └── User.js           # 사용자 모델
+    └── .env                      # 서버 환경 변수
 ```
 
 ## 4. 주요 컴포넌트
@@ -109,9 +119,11 @@ palette/
 ## 7. API 구조
 
 ### 인증
-- POST /api/auth/register
-- POST /api/auth/login
-- POST /api/auth/logout
+- POST /api/auth/register  # 회원가입
+- POST /api/auth/login    # 로그인
+- POST /api/auth/logout   # 로그아웃
+- GET /api/auth/me       # 현재 사용자 정보 조회
+- POST /api/auth/refresh # 토큰 갱신
 
 ### 게시물
 - GET /api/posts
