@@ -86,7 +86,11 @@ const Register = () => {
   const navigate = useNavigate();
   const { register: registerUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<{
+    message: string;
+    field?: string;
+  } | null>(null);
+  const [showLoginOption, setShowLoginOption] = useState(false);
 
   const {
     register,
@@ -95,15 +99,7 @@ const Register = () => {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    mode: 'onChange',
-    defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      nickname: '',
-      colorVisionType: 'normal',
-      bio: '',
-    },
+    mode: 'onChange'
   });
 
   const password = watch('password');
@@ -115,27 +111,67 @@ const Register = () => {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsSubmitting(true);
-      setError(null);
-      
-      const success = await registerUser(data);
-      
-      if (success) {
-        // Navigate to email verification page after successful registration
-        navigate(`/verify-email?email=${encodeURIComponent(data.email)}`, { replace: true });
+      setFormError(null);
+      setShowLoginOption(false);
+      console.log('[Register onSubmit] Starting registration process...', data);
+
+      const result = await registerUser(data);
+      console.log('[Register onSubmit] Received registration result:', result);
+
+      // 이메일 인증이 필요한 경우 (성공)
+      if (result.success && result.data?.requiresVerification) {
+        console.log('[Register onSubmit] Email verification required. Showing verification message.');
+        navigate('/verify-email', {
+          replace: true,
+          state: {
+            email: data.email,
+            message: result.message || '이메일 인증이 필요합니다.',
+            showResend: true
+          }
+        });
+        return;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '회원가입 중 오류가 발생했습니다.');
+
+      // 일반적인 성공 케이스 (이메일 인증 불필요)
+      if (result.success && !result.data?.requiresVerification) {
+        console.log('[Register onSubmit] Registration successful (no verification needed). Navigating to /.');
+        navigate('/', { replace: true });
+        return;
+      }
+
+      // 실패 케이스
+      console.log('[Register onSubmit] Registration failed:', result);
+      if (result.error) {
+        setFormError(result.error);
+        // 이메일 중복 에러 처리
+        if (result.error.field === 'email' && result.error.message.includes('이미 사용 중')) {
+          setShowLoginOption(true);
+        }
+      } else {
+        setFormError({ message: result.message || '회원가입에 실패했습니다.' });
+      }
+    } catch (err: any) {
+      console.error('[Register onSubmit] Unexpected error during registration:', err);
+      // 401 에러는 이메일 인증이 필요한 경우일 수 있음
+      if (err.response?.status === 401) {
+        navigate('/verify-email', {
+          replace: true,
+          state: {
+            email: data.email,
+            message: '이메일 인증이 필요합니다.',
+            showResend: true
+          }
+        });
+        return;
+      }
+      setFormError({
+        message: err.response?.data?.message || '회원가입 처리 중 오류가 발생했습니다.',
+        field: 'general'
+      });
     } finally {
       setIsSubmitting(false);
+      console.log('[Register onSubmit] Registration process finished.');
     }
-  };
-
-  const handleSocialLoginSuccess = () => {
-    navigate('/onboarding');
-  };
-
-  const handleSocialLoginError = (error: Error) => {
-    setError(error.message);
   };
 
   return (
@@ -153,29 +189,21 @@ const Register = () => {
         </Typography>
       </Box>
 
-      {error && (
+      {formError && (
         <Alert 
-          severity="error" 
-          sx={{ mt: 2, width: '100%' }}
-          action={
-            error.includes('이미 사용 중인 이메일') && (
-              <Button
-                color="inherit"
-                size="small"
-                onClick={() => navigate('/login')}
-              >
-                로그인하기
-              </Button>
-            )
-          }
-        >
-          {error.includes('이미 사용 중인 이메일') ? (
-            <>
-              이미 가입된 이메일 주소입니다. 로그인하시거나 다른 이메일로 가입해주세요.
-            </>
-          ) : (
-            error
+          severity="error"
+          sx={{ mt: 2, mb: 2 }}
+          action={showLoginOption && (
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => navigate('/login')}
+            >
+              로그인하기
+            </Button>
           )}
+        >
+          {formError.message}
         </Alert>
       )}
 
@@ -188,8 +216,11 @@ const Register = () => {
           id="email"
           label="이메일 주소"
           autoComplete="email"
-          error={!!errors.email}
-          helperText={errors.email?.message}
+          error={!!errors.email || formError?.field === 'email'}
+          helperText={
+            (formError?.field === 'email' && formError.message) ||
+            errors.email?.message
+          }
         />
 
         <TextField
@@ -201,11 +232,14 @@ const Register = () => {
           type="password"
           id="password"
           autoComplete="new-password"
-          error={!!errors.password}
-          helperText={errors.password?.message}
+          error={!!errors.password || formError?.field === 'password'}
+          helperText={
+            (formError?.field === 'password' && formError.message) ||
+            errors.password?.message
+          }
         />
 
-        <PasswordRequirements password={password || ''} />
+        <PasswordRequirements password={password} />
 
         <TextField
           {...register('confirmPassword')}
@@ -215,8 +249,12 @@ const Register = () => {
           label="비밀번호 확인"
           type="password"
           id="confirmPassword"
-          error={!!errors.confirmPassword}
-          helperText={errors.confirmPassword?.message}
+          autoComplete="new-password"
+          error={!!errors.confirmPassword || formError?.field === 'confirmPassword'}
+          helperText={
+            (formError?.field === 'confirmPassword' && formError.message) ||
+            errors.confirmPassword?.message
+          }
         />
 
         <TextField
@@ -226,14 +264,17 @@ const Register = () => {
           fullWidth
           label="닉네임"
           id="nickname"
-          error={!!errors.nickname}
-          helperText={errors.nickname?.message}
+          error={!!errors.nickname || formError?.field === 'nickname'}
+          helperText={
+            (formError?.field === 'nickname' && formError.message) ||
+            errors.nickname?.message
+          }
         />
 
         <FormControl 
           fullWidth 
           margin="normal"
-          error={!!errors.colorVisionType}
+          error={!!errors.colorVisionType || formError?.field === 'colorVisionType'}
         >
           <InputLabel id="colorVisionType-label">색각이상 유형</InputLabel>
           <Select
@@ -249,8 +290,12 @@ const Register = () => {
             <MenuItem value="tritanopia">제3색각이상 (청색맹)</MenuItem>
             <MenuItem value="monochromacy">전색맹</MenuItem>
           </Select>
-          {errors.colorVisionType && (
-            <FormHelperText>{errors.colorVisionType.message}</FormHelperText>
+          {(formError?.field === 'colorVisionType' && (
+            <FormHelperText>{formError.message}</FormHelperText>
+          )) || (
+            errors.colorVisionType && (
+              <FormHelperText>{errors.colorVisionType.message}</FormHelperText>
+            )
           )}
         </FormControl>
 
@@ -263,8 +308,11 @@ const Register = () => {
           id="bio"
           multiline
           rows={4}
-          error={!!errors.bio}
-          helperText={errors.bio?.message}
+          error={!!errors.bio || formError?.field === 'bio'}
+          helperText={
+            (formError?.field === 'bio' && formError.message) ||
+            errors.bio?.message
+          }
         />
 
         <SubmitButton
@@ -279,9 +327,7 @@ const Register = () => {
               <CircularProgress size={24} sx={{ mr: 1 }} />
               처리 중...
             </>
-          ) : (
-            '회원가입'
-          )}
+          ) : '회원가입'}
         </SubmitButton>
 
         <Box mt={2}>
@@ -299,8 +345,8 @@ const Register = () => {
 
         <Box mt={3}>
           <SocialLogin
-            onSuccess={handleSocialLoginSuccess}
-            onError={handleSocialLoginError}
+            onSuccess={() => navigate('/onboarding')}
+            onError={(error) => setFormError({ message: error.message })}
             disabled={isSubmitting}
           />
         </Box>

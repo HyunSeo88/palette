@@ -3,6 +3,10 @@ const { body, validationResult } = require('express-validator');
 const router = express.Router();
 const User = require('../models/User');
 const { auth: protect, generateToken, sendTokenResponse } = require('../middleware/auth');
+const { sendVerificationEmail } = require('../utils/email');
+const crypto = require('crypto');
+const { registerRules, validate } = require('../middleware/validation');
+const { register, verifyEmail } = require('../controllers/auth');
 
 // 입력 유효성 검사 미들웨어
 const validateRegister = [
@@ -43,40 +47,56 @@ const validateRegister = [
 ];
 
 // 회원가입
-router.post('/register', validateRegister, async (req, res, next) => {
+router.post('/register', registerRules, validate, register);
+
+// 이메일 인증
+router.get('/verify-email/:token', verifyEmail);
+
+// 인증 이메일 재발송
+router.post('/resend-verification', async (req, res, next) => {
   try {
-    // 유효성 검사 결과 확인
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    const { email } = req.body;
+
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: errors.array()[0].msg,
-        errors: errors.array()
+        message: '이메일 주소가 필요합니다.'
       });
     }
 
-    const { email, password, nickname, colorVisionType, bio } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '해당 이메일로 가입된 사용자를 찾을 수 없습니다.'
+      });
+    }
 
-    // 사용자 생성
-    const user = await User.create({
-      email,
-      password,
-      nickname,
-      colorVisionType,
-      bio
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: '이미 인증된 이메일입니다.'
+      });
+    }
+
+    // 새로운 인증 토큰 생성
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    user.emailVerificationToken = crypto
+      .createHash('sha256')
+      .update(verificationToken)
+      .digest('hex');
+    user.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save();
+
+    // 인증 이메일 재발송
+    const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
+    await sendVerificationEmail(user.email, verificationUrl);
+
+    res.status(200).json({
+      success: true,
+      message: '인증 이메일이 재발송되었습니다.'
     });
-
-    // 토큰 생성 및 응답
-    sendTokenResponse(user, 201, res);
   } catch (error) {
-    if (error.code === 11000) {
-      // 중복 키 오류 처리
-      const field = Object.keys(error.keyPattern)[0];
-      return res.status(400).json({
-        success: false,
-        message: `이미 사용 중인 ${field === 'email' ? '이메일' : '닉네임'}입니다.`
-      });
-    }
     next(error);
   }
 });

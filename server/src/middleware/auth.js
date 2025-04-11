@@ -7,15 +7,62 @@ const auth = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      return res.status(401).json({ success: false, message: '인증이 필요합니다.' });
+      return res.status(401).json({ 
+        success: false, 
+        error: 'TOKEN_MISSING',
+        message: '인증 토큰이 필요합니다.' 
+      });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id };
-    next();
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // 사용자 존재 여부 확인
+      const user = await User.findById(decoded.id).select('-password');
+      
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          error: 'USER_NOT_FOUND',
+          message: '유효하지 않은 사용자입니다.'
+        });
+      }
+
+      // 이메일 인증 여부 확인
+      if (!user.isEmailVerified) {
+        return res.status(401).json({
+          success: false,
+          error: 'EMAIL_NOT_VERIFIED',
+          message: '이메일 인증이 필요합니다.'
+        });
+      }
+
+      req.user = user;
+      next();
+    } catch (jwtError) {
+      if (jwtError.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          error: 'TOKEN_EXPIRED',
+          message: '인증 토큰이 만료되었습니다.'
+        });
+      }
+      if (jwtError.name === 'JsonWebTokenError') {
+        return res.status(401).json({
+          success: false,
+          error: 'TOKEN_INVALID',
+          message: '유효하지 않은 토큰입니다.'
+        });
+      }
+      throw jwtError;
+    }
   } catch (error) {
     console.error('Auth middleware error:', error);
-    res.status(401).json({ success: false, message: '유효하지 않은 토큰입니다.' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'SERVER_ERROR',
+      message: '인증 처리 중 오류가 발생했습니다.' 
+    });
   }
 };
 

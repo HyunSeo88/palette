@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/SettingsPage';
 import MyPage from './pages/MyPage';
 import RegisterPage from './pages/RegisterPage';
+import EmailVerification from './components/auth/EmailVerification';
 
 const App: React.FC = () => {
   const { user } = useAuth();
@@ -22,6 +23,7 @@ const App: React.FC = () => {
           <Route path="/" element={<MainLayout />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/verify-email" element={<EmailVerification />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/mypage" element={
             user ? <MyPage /> : <Navigate to="/login" replace />

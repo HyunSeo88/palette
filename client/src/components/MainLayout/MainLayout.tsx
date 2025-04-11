@@ -59,13 +59,23 @@ interface SectionContentProps {
 }
 
 const SectionContentRenderer: React.FC<SectionContentProps> = ({ sectionId }) => {
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
   switch (sectionId) {
     case 'value':
       return (
         <ValueContent>
           <img 
-            src="https://source.unsplash.com/random/1200x800?minimal,fashion,abstract" 
+            src={imageError 
+              ? "https://source.unsplash.com/featured/1200x800?fashion" 
+              : "https://source.unsplash.com/random/1200x800?fashion"}
             alt="가치관 대표 이미지"
+            onError={handleImageError}
+            loading="lazy"
           />
         </ValueContent>
       );

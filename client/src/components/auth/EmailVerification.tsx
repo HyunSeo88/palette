@@ -1,143 +1,131 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Box,
+  Container,
   Typography,
   CircularProgress,
   Alert,
+  AlertTitle,
   Button,
-  Container,
-  Paper
+  Box,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
 import { useAuth } from '../../contexts/AuthContext';
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: theme.spacing(2),
-  maxWidth: 400,
-  margin: '0 auto',
-  marginTop: theme.spacing(8)
-}));
+interface LocationState {
+  email?: string;
+  message?: string;
+  showResend?: boolean;
+}
 
 const EmailVerification: React.FC = () => {
-  const [verifying, setVerifying] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [resending, setResending] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
   const { verifyEmail, resendVerificationEmail } = useAuth();
+  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
+  const [message, setMessage] = useState<string>('이메일 인증을 진행중입니다...');
+  const [isResending, setIsResending] = useState(false);
+
+  const state = location.state as LocationState;
+  const searchParams = new URLSearchParams(location.search);
+  const token = searchParams.get('token');
 
   useEffect(() => {
     const verifyToken = async () => {
-      try {
-        const params = new URLSearchParams(location.search);
-        const token = params.get('token');
-        
-        if (!token) {
-          setError('유효하지 않은 인증 링크입니다.');
-          setVerifying(false);
-          return;
+      if (!token) {
+        // 토큰이 없는 경우 (회원가입 직후 상태)
+        if (state?.message) {
+          setStatus('verifying');
+          setMessage(state.message);
+        } else {
+          setStatus('error');
+          setMessage('유효하지 않은 인증 링크입니다.');
         }
+        return;
+      }
 
-        await verifyEmail(token);
-        setSuccess(true);
-        setVerifying(false);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '이메일 인증에 실패했습니다.');
-        setVerifying(false);
+      try {
+        const result = await verifyEmail(token);
+        if (result) {
+          setStatus('success');
+          setMessage('이메일 인증이 완료되었습니다.');
+          // 3초 후 로그인 페이지로 이동
+          setTimeout(() => navigate('/login'), 3000);
+        } else {
+          setStatus('error');
+          setMessage('이메일 인증에 실패했습니다.');
+        }
+      } catch (error: any) {
+        setStatus('error');
+        setMessage(error.message || '이메일 인증 중 오류가 발생했습니다.');
       }
     };
 
     verifyToken();
-  }, [location.search, verifyEmail]);
+  }, [token, verifyEmail, navigate, state]);
 
-  const handleContinue = () => {
-    navigate('/login');
-  };
+  const handleResendVerification = async () => {
+    if (!state?.email || isResending) return;
 
-  const handleResend = async () => {
+    setIsResending(true);
     try {
-      setResending(true);
-      const params = new URLSearchParams(location.search);
-      const email = params.get('email');
-      
-      if (!email) {
-        setError('이메일 주소가 없습니다. 회원가입을 다시 진행해주세요.');
-        return;
+      const result = await resendVerificationEmail(state.email);
+      if (result) {
+        setMessage('인증 이메일이 재발송되었습니다. 이메일을 확인해주세요.');
+      } else {
+        throw new Error('인증 이메일 재발송에 실패했습니다.');
       }
-
-      await resendVerificationEmail(email);
-      setError('새로운 인증 이메일이 발송되었습니다. 이메일을 확인해주세요.');
-    } catch (err) {
-      setError('인증 이메일 재발송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } catch (error: any) {
+      setMessage(error.message || '인증 이메일 재발송 중 오류가 발생했습니다.');
     } finally {
-      setResending(false);
+      setIsResending(false);
     }
   };
 
-  if (verifying) {
-    return (
-      <Container>
-        <StyledPaper>
-          <CircularProgress />
-          <Typography>이메일 인증을 진행하고 있습니다...</Typography>
-        </StyledPaper>
-      </Container>
-    );
-  }
-
   return (
-    <Container>
-      <StyledPaper>
-        {success ? (
-          <>
-            <Typography variant="h5" gutterBottom>
-              이메일 인증 완료
-            </Typography>
-            <Alert severity="success">
-              이메일이 성공적으로 인증되었습니다.
-            </Alert>
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              onClick={handleContinue}
-            >
-              로그인하기
-            </Button>
-          </>
-        ) : (
-          <>
-            <Typography variant="h5" gutterBottom>
-              이메일 인증 실패
-            </Typography>
-            <Alert severity="error">{error}</Alert>
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              onClick={handleResend}
-              disabled={resending}
-            >
-              {resending ? '재발송 중...' : '인증 이메일 재발송'}
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              fullWidth
-              onClick={() => navigate('/register')}
-              disabled={resending}
-            >
-              회원가입으로 돌아가기
-            </Button>
-          </>
-        )}
-      </StyledPaper>
+    <Container maxWidth="sm" sx={{ mt: 4, textAlign: 'center' }}>
+      {status === 'verifying' && !token && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            이메일 인증
+          </Typography>
+          <Typography color="text.secondary" paragraph>
+            {state?.email}
+          </Typography>
+        </Box>
+      )}
+
+      {status === 'verifying' && token && <CircularProgress sx={{ mb: 3 }} />}
+
+      <Alert 
+        severity={status === 'success' ? 'success' : status === 'error' ? 'error' : 'info'}
+        sx={{ mb: 3 }}
+      >
+        <AlertTitle>
+          {status === 'success' ? '인증 완료' : 
+           status === 'error' ? '인증 실패' : 
+           '인증 대기'}
+        </AlertTitle>
+        <Typography>{message}</Typography>
+      </Alert>
+
+      {state?.showResend && state?.email && status !== 'success' && (
+        <Button
+          variant="outlined"
+          onClick={handleResendVerification}
+          disabled={isResending}
+          sx={{ mt: 2 }}
+        >
+          {isResending ? '재발송 중...' : '인증 이메일 재발송'}
+        </Button>
+      )}
+
+      <Button
+        variant="text"
+        onClick={() => navigate('/login')}
+        sx={{ mt: 2, ml: 2 }}
+      >
+        로그인 페이지로 이동
+      </Button>
     </Container>
   );
 };
