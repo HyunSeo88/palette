@@ -57,10 +57,12 @@ git clone [repository-url]
 cd palette
 
 # 의존성 설치
+cd palette/client
 npm install
 
 # 개발 서버 실행
-npm start
+cd palette/server
+npm run dev
 ```
 
 ## 🌐 프로젝트 구조 (Project Structure)
