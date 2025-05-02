@@ -16,6 +16,7 @@ import { styled } from '@mui/material/styles';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { loginSchema, type LoginFormData } from '../../utils/validationSchemas';
+import SocialLogin from './SocialLogin';
 
 const FormContainer = styled(Container)(({ theme }) => ({
   marginTop: theme.spacing(8),
@@ -152,6 +153,8 @@ const Login: React.FC = () => {
             '로그인'
           )}
         </SubmitButton>
+
+        <SocialLogin disabled={isSubmitting} />
 
         <Box mt={2} display="flex" flexDirection="column" alignItems="center" gap={1}>
           <Typography variant="body2">

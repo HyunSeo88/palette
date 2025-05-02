@@ -49,8 +49,9 @@ const validateRegister = [
 // 회원가입
 router.post('/register', registerRules, validate, register);
 
-// 이메일 인증
-router.get('/verify-email/:token', verifyEmail);
+// 이메일 인증 (라우트 수정)
+// router.get('/verify-email/:token', verifyEmail); // 기존 GET 라우트 주석 처리
+router.post('/verify-email', verifyEmail); // POST 라우트로 변경
 
 // 인증 이메일 재발송
 router.post('/resend-verification', async (req, res, next) => {

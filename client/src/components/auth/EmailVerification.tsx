@@ -20,7 +20,8 @@ interface LocationState {
 const EmailVerification: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { verifyEmail, resendVerificationEmail } = useAuth();
+  const authContextValue = useAuth();
+  const { verifyEmail, resendVerificationEmail } = authContextValue;
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [message, setMessage] = useState<string>('이메일 인증을 진행중입니다...');
   const [isResending, setIsResending] = useState(false);
@@ -48,8 +49,8 @@ const EmailVerification: React.FC = () => {
         if (result) {
           setStatus('success');
           setMessage('이메일 인증이 완료되었습니다.');
-          // 3초 후 로그인 페이지로 이동
-          setTimeout(() => navigate('/login'), 3000);
+          // 3초 후 메인 페이지로 이동
+          setTimeout(() => navigate('/'), 3000);
         } else {
           setStatus('error');
           setMessage('이메일 인증에 실패했습니다.');

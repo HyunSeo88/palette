@@ -65,40 +65,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const blockCheckAuthRef = useRef<boolean>(false);
   const skipInitialCheckRef = useRef<boolean>(false);
 
-  useEffect(() => {
-    if (!skipInitialCheckRef.current) {
-      checkAuth();
-    }
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     if (blockCheckAuthRef.current) {
-      console.log('[AuthContext checkAuth] checkAuth is temporarily blocked.');
       return;
     }
 
-    console.log('[AuthContext checkAuth] Attempting to check authentication status...');
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
       const { accessToken, refreshToken } = getTokens();
-      console.log('[AuthContext checkAuth] Retrieved tokens:', { hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken });
       const tokenValidation = validateTokenPair(accessToken, refreshToken);
-      console.log('[AuthContext checkAuth] Token validation result:', tokenValidation);
 
       if (!tokenValidation.isValid) {
-        console.log('[AuthContext checkAuth] Tokens invalid or missing. Setting unauthenticated state.');
         removeTokens();
         setAuthState(prev => ({ ...prev, user: null, isEmailVerified: false, loading: false }));
         return;
       }
 
-      console.log('[AuthContext checkAuth] Valid tokens found. Calling /auth/me using main api instance...');
       const response = await api.get<{ success: boolean; data: User }>('/auth/me');
-      console.log('[AuthContext checkAuth] Received /auth/me response:', response.data);
 
       if (response.data.success) {
-        console.log('[AuthContext checkAuth] /auth/me successful. Setting authenticated state.');
         setAuthState(prev => ({
           ...prev,
           user: response.data.data,
@@ -107,22 +93,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           error: null,
         }));
       } else {
-        console.error('[AuthContext checkAuth] /auth/me call succeeded but returned success: false.');
         removeTokens();
         setAuthState(prev => ({ ...prev, user: null, isEmailVerified: false, loading: false, error: '사용자 정보를 가져오는데 실패했습니다.' }));
       }
     } catch (error: any) {
-      console.error('[AuthContext checkAuth] Error during checkAuth:', error);
       if (error.response?.data?.error === 'EMAIL_NOT_VERIFIED') {
-        console.log('[AuthContext checkAuth] Email not verified.');
         setAuthState(prev => ({ ...prev, user: null, isEmailVerified: false, loading: false, error: '이메일 인증이 필요합니다.' }));
       } else {
-        console.log('[AuthContext checkAuth] Failed. Setting unauthenticated state.');
         removeTokens();
         setAuthState(prev => ({ ...prev, user: null, isEmailVerified: false, loading: false, error: error.message || '인증 확인 중 오류 발생' }));
       }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!skipInitialCheckRef.current) {
+      checkAuth();
+    }
+  }, [checkAuth]);
 
   const clearError = useCallback(() => {
     setAuthState(prev => ({ ...prev, error: null }));
@@ -131,7 +119,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = useCallback(async (email: string, password: string, rememberMe: boolean): Promise<boolean> => {
     setIsLoading(true);
     blockCheckAuthRef.current = true;
-    console.log('[AuthContext Login] Starting login, checkAuth blocked.');
     let success = false;
     try {
       const response = await api.post('/auth/login', { email, password });
@@ -143,37 +130,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(response.data.message || '로그인 실패');
       }
     } catch (error: any) {
-      console.error('[AuthContext Login] Login error:', error);
       const errorMessage = error.response?.data?.message || error.message || '로그인 중 오류 발생';
        setAuthState(prev => ({ ...prev, error: errorMessage }));
       success = false;
     } finally {
       setIsLoading(false);
       blockCheckAuthRef.current = false;
-      console.log('[AuthContext Login] Login process finished, checkAuth unblocked.');
     }
     return success;
-  }, [authState.user]);
+  }, [checkAuth]);
 
-  const register = async (userData: RegisterData): Promise<AuthResponse> => {
+  const register = useCallback(async (userData: RegisterData): Promise<AuthResponse> => {
     setIsLoading(true);
     blockCheckAuthRef.current = true;
     skipInitialCheckRef.current = true;
-    console.log('[AuthContext Register] Starting registration process...');
 
     try {
-      // 회원가입 요청
       const response = await directApi.post<AuthResponse>('/auth/register', userData);
-      console.log('[AuthContext Register] Server response:', response.data);
 
-      // 회원가입 실패
       if (!response.data.success) {
         throw new Error(response.data.message || '회원가입 실패');
       }
 
-      // 이메일 인증이 필요한 경우
       if (response.data.data?.requiresVerification) {
-        console.log('[AuthContext Register] Email verification required');
         removeTokens();
         setAuthState(prev => ({
           ...prev,
@@ -192,9 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
-      // 이메일 인증이 필요하지 않은 경우
       if (response.data.data?.token && response.data.data?.refreshToken) {
-        console.log('[AuthContext Register] No email verification required, setting tokens');
         setTokens(response.data.data.token, response.data.data.refreshToken, true);
         blockCheckAuthRef.current = false;
         await checkAuth();
@@ -204,10 +181,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('인증 토큰을 받지 못했습니다.');
 
     } catch (error: any) {
-      console.error('[AuthContext Register] Registration error:', error);
       const errorMessage = error.response?.data?.message || error.message || '회원가입 중 오류 발생';
       
-      // 401 에러는 이메일 인증이 필요한 경우일 수 있음
       if (error.response?.status === 401 && error.response?.data?.error === 'EMAIL_NOT_VERIFIED') {
         removeTokens();
         setAuthState(prev => ({
@@ -244,9 +219,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     } finally {
       setIsLoading(false);
-      console.log('[AuthContext Register] Registration process completed');
     }
-  };
+  }, [checkAuth]);
 
   const logout = useCallback(() => {
     removeTokens();
@@ -258,10 +232,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
   }, []);
 
-  const updateProfile = async (userData: Partial<User>): Promise<boolean> => {
+  const updateProfile = useCallback(async (userData: Partial<User>): Promise<boolean> => {
+    const userId = authState.user?._id;
+    if (!userId) {
+      setAuthState(prev => ({ ...prev, error: '사용자 ID를 찾을 수 없습니다.' }));
+      return false;
+    }
+
     try {
       setAuthState(prev => ({ ...prev, error: null }));
-      const response = await api.put<{ success: boolean; data: User }>(`/users/${authState.user?._id}`, userData);
+      const response = await api.put<{ success: boolean; data: User }>(`/users/${userId}`, userData);
 
       if (response.data.success) {
         setAuthState(prev => ({
@@ -277,9 +257,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthState(prev => ({ ...prev, error: message }));
       throw new Error(message);
     }
-  };
+  }, [authState.user?._id]);
 
-  const resetPassword = async (email: string): Promise<boolean> => {
+  const resetPassword = useCallback(async (email: string): Promise<boolean> => {
     try {
       setAuthState(prev => ({ ...prev, error: null }));
       const response = await api.post<{ success: boolean }>('/auth/reset-password', { email });
@@ -289,9 +269,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthState(prev => ({ ...prev, error: message }));
       throw new Error(message);
     }
-  };
+  }, []);
 
-  const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+  const updatePassword = useCallback(async (currentPassword: string, newPassword: string): Promise<boolean> => {
     try {
       setAuthState(prev => ({ ...prev, error: null }));
       const response = await api.put<{ success: boolean }>('/auth/password', {
@@ -304,12 +284,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthState(prev => ({ ...prev, error: message }));
       throw new Error(message);
     }
-  };
+  }, []);
 
-  const verifyEmail = async (token: string): Promise<boolean> => {
+  const verifyEmail = useCallback(async (token: string): Promise<boolean> => {
     try {
       setAuthState(prev => ({ ...prev, error: null }));
-      blockCheckAuthRef.current = true; // 인증 프로세스 동안 checkAuth 차단
+      blockCheckAuthRef.current = true;
       
       const response = await api.post<{
         success: boolean;
@@ -330,27 +310,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               error: null,
               isEmailVerified: userResponse.data.data.isEmailVerified
             }));
-            blockCheckAuthRef.current = false; // 인증 성공 시 checkAuth 허용
+            blockCheckAuthRef.current = false;
             return true;
           }
         } catch (error) {
-          console.error('[AuthContext verifyEmail] Failed to fetch user data:', error);
           removeTokens();
           throw new Error('사용자 정보를 가져오는데 실패했습니다.');
         }
       }
-      blockCheckAuthRef.current = false; // 인증 실패 시에도 checkAuth 허용
+      blockCheckAuthRef.current = false;
       return false;
     } catch (error: any) {
       const message = error.response?.data?.message || '이메일 인증 중 오류가 발생했습니다.';
       setAuthState(prev => ({ ...prev, error: message }));
       removeTokens();
-      blockCheckAuthRef.current = false; // 에러 발생 시에도 checkAuth 허용
+      blockCheckAuthRef.current = false;
       return false;
     }
-  };
+  }, []);
 
-  const resendVerificationEmail = async (email: string): Promise<boolean> => {
+  const resendVerificationEmail = useCallback(async (email: string): Promise<boolean> => {
     try {
       setAuthState(prev => ({ ...prev, error: null }));
       const response = await api.post<{ success: boolean }>('/auth/resend-verification', { email });
@@ -360,9 +339,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthState(prev => ({ ...prev, error: message }));
       throw new Error(message);
     }
-  };
+  }, []);
 
-  const socialLogin = async (provider: 'google' | 'kakao', token: string): Promise<boolean> => {
+  const socialLogin = useCallback(async (provider: 'google' | 'kakao', token: string): Promise<boolean> => {
     try {
       setAuthState(prev => ({ ...prev, error: null }));
       const response = await api.post<{ success: boolean; token: string; refreshToken: string; isNewUser: boolean }>(`/auth/${provider}`, {
@@ -381,31 +360,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthState(prev => ({ ...prev, error: message }));
       throw new Error(message);
     }
+  }, [checkAuth]);
+
+  const providerValue = {
+    user: authState.user,
+    loading: authState.loading,
+    isAuthenticated: !!authState.user,
+    error: authState.error,
+    isLoading,
+    login,
+    register,
+    logout,
+    updateProfile,
+    resetPassword,
+    updatePassword,
+    socialLogin,
+    clearError,
+    verifyEmail,
+    resendVerificationEmail
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user: authState.user,
-        loading: authState.loading,
-        isAuthenticated: !!authState.user,
-        error: authState.error,
-        isLoading,
-        login,
-        register,
-        logout,
-        updateProfile,
-        resetPassword,
-        updatePassword,
-        socialLogin,
-        clearError,
-        verifyEmail,
-        resendVerificationEmail
-      }}
-    >
+    <AuthContext.Provider value={providerValue}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export default AuthContext; 
+// export default AuthContext; // 기본 내보내기 제거 

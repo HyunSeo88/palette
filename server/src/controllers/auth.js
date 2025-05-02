@@ -90,10 +90,11 @@ exports.register = async (req, res, next) => {
   }
 };
 
-// 이메일 인증 컨트롤러
+// 이메일 인증 컨트롤러 수정
 exports.verifyEmail = async (req, res, next) => {
   try {
-    const { token } = req.params;
+    // 토큰을 req.body에서 가져옴
+    const { token } = req.body;
 
     if (!token) {
       return res.status(400).json({
@@ -102,19 +103,20 @@ exports.verifyEmail = async (req, res, next) => {
       });
     }
 
-    // 토큰으로 해시 생성
+    // 원본 토큰으로 해시 생성 (DB와 비교하기 위해)
     const emailVerificationToken = crypto
       .createHash('sha256')
       .update(token)
       .digest('hex');
 
-    // 토큰으로 사용자 찾기
+    // 토큰으로 사용자 찾기 (만료 시간 확인 포함)
     const user = await User.findOne({
       emailVerificationToken,
       emailVerificationExpires: { $gt: Date.now() }
     });
 
     if (!user) {
+      // 해당 토큰을 가진 사용자가 없거나 만료된 경우
       return res.status(400).json({
         success: false,
         message: '유효하지 않거나 만료된 인증 토큰입니다.'
@@ -127,11 +129,11 @@ exports.verifyEmail = async (req, res, next) => {
     user.emailVerificationExpires = undefined;
     await user.save();
 
-    res.status(200).json({
-      success: true,
-      message: '이메일 인증이 완료되었습니다.'
-    });
+    // 로그인과 동일하게 토큰 응답 전송
+    sendTokenResponse(user, 200, res);
+
   } catch (error) {
-    next(error);
+    console.error('[Server VerifyEmail] Error caught:', error);
+    next(error); // 에러 처리 미들웨어로 전달
   }
 }; 

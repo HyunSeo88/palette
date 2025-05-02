@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Palette - OOTD</title>
+
+  <!--
+    Styles placed in the same file for demonstration purposes.
+    In production, separating into external .css is recommended.
+  -->
+  <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Overall Layout */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #333;
+      background-color: #f7f9fc; /* Matches the background in the mockup */
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar (Left Navigation) */
+    aside {
+      width: 240px; /* Sufficient space for brand, search, nav items */
+      background-color: #ffffff;
+      border-right: 1px solid #eaeaea;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+    }
+
+    /* Brand Section in Sidebar */
+    .brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #2c3e50; /* A darker shade for brand text */
+    }
+
+    /* Search Bar in Sidebar */
+    .sidebar-search {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .sidebar-search input[type="text"] {
+      width: 100%;
+      padding: 0.75rem;
+      padding-left: 2.5rem; /* Spacing for a potential search icon */
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    /* Example of a magnifying glass icon (optional) */
+    .sidebar-search::before {
+      content: '🔍'; /* Simple placeholder icon */
+      position: absolute;
+      left: 0.75rem;
+      top: 0.65rem;
+      font-size: 1rem;
+      color: #888;
+    }
+
+    /* Navigation within Sidebar */
+    nav ul {
+      list-style: none;
+    }
+
+    nav li {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      color: #555;
+      transition: color 0.2s ease;
+    }
+
+    nav li:hover {
+      color: #000; /* Darken text on hover */
+    }
+
+    /* Main Content Area */
+    main {
+      flex: 1;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    /* OOTD Header */
+    header.main-header {
+      margin-bottom: 2rem;
+    }
+
+    header.main-header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* OOTD Section: Grid of Cards */
+    .ootd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Individual OOTD Card */
+    .ootd-card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+      padding: 1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .ootd-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      object-fit: cover;
+    }
+
+    .ootd-card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .likes {
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: auto;
+    }
+
+    .likes span {
+      margin-left: 0.3rem;
+      color: #e74c3c; /* Heart icon color, if used */
+    }
+
+    /* Popular Posts Section */
+    .popular-posts {
+      margin-bottom: 2rem;
+    }
+
+    .popular-posts h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .popular-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .popular-card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .popular-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      object-fit: cover;
+    }
+
+    /* Responsive Adjustments (Optional) */
+    @media (max-width: 768px) {
+      aside {
+        width: 200px;
+      }
+      .ootd-grid {
+        grid-template-columns: 1fr 1fr; /* Adjust for smaller screens */
+      }
+      .popular-grid {
+        grid-template-columns: 1fr; /* Stacks for narrower viewports */
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand">Palette</div>
+    <div class="sidebar-search">
+      <input type="text" placeholder="Search..." />
+    </div>
+    <nav>
+      <ul>
+        <li>Home</li>
+        <li>OOTD</li>
+        <li>Community</li>
+        <li>Events</li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Heading for OOTD -->
+    <header class="main-header">
+      <h1>OOTD</h1>
+    </header>
+
+    <!-- OOTD Grid -->
+    <section class="ootd-grid">
+      <!-- Card 1 -->
+      <article class="ootd-card">
+        <img 
+          src="https://via.placeholder.com/300x400/DDD/AAA?text=Beige+Blazer"
+          alt="Beige blazer, denim, sneakers" 
+        />
+        <h2>Beige blazer, denim, sneakers</h2>
+        <div class="likes">
+          <span>♥</span>
+          <span>150</span>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="ootd-card">
+        <img 
+          src="https://via.placeholder.com/300x400/DDD/AAA?text=Green+Top"
+          alt="Green top and wide-leg pants" 
+        />
+        <h2>Green top and wide-leg pants</h2>
+        <div class="likes">
+          <span>♥</span>
+          <span>120</span>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="ootd-card">
+        <img 
+          src="https://via.placeholder.com/300x400/DDD/AAA?text=Puffer+Vest"
+          alt="Puffer vest and cap" 
+        />
+        <h2>Puffer vest and cap</h2>
+        <div class="likes">
+          <span>♥</span>
+          <span>87</span>
+        </div>
+      </article>
+
+      <!-- Card 4 (Placeholder for a quick link or highlight) -->
+      <article class="ootd-card">
+        <img 
+          src="https://via.placeholder.com/300x400/DDD/AAA?text=Feature"
+          alt="Featured or pinned post" 
+        />
+        <h2>Popular Posts</h2>
+        <div class="likes">
+          <span>♥</span>
+          <span>109</span>
+        </div>
+      </article>
+    </section>
+
+    <!-- Dedicated "Popular Posts" Section -->
+    <section class="popular-posts">
+      <h2>Popular Posts</h2>
+      <div class="popular-grid">
+        <article class="popular-card">
+          <img 
+            src="https://via.placeholder.com/300x300/DDD/AAA?text=Popular+1"
+            alt="Popular Post 1" 
+          />
+          <h3>Summer Dress Ideas</h3>
+          <div class="likes">
+            <span>♥</span>
+            <span>230</span>
+          </div>
+        </article>
+        <article class="popular-card">
+          <img 
+            src="https://via.placeholder.com/300x300/DDD/AAA?text=Popular+2"
+            alt="Popular Post 2" 
+          />
+          <h3>Sporty Streetwear</h3>
+          <div class="likes">
+            <span>♥</span>
+            <span>190</span>
+          </div>
+        </article>
+        <article class="popular-card">
+          <img 
+            src="https://via.placeholder.com/300x300/DDD/AAA?text=Popular+3"
+            alt="Popular Post 3" 
+          />
+          <h3>Minimalist Fashion</h3>
+          <div class="likes">
+            <span>♥</span>
+            <span>210</span>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>
