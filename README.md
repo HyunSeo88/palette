@@ -59,6 +59,7 @@ cd palette
 # 의존성 설치
 cd palette/client
 npm install
+npm start
 
 # 개발 서버 실행
 cd palette/server
