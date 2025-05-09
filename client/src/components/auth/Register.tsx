@@ -345,8 +345,9 @@ const Register = () => {
 
         <Box mt={3}>
           <SocialLogin
+            flowIntent="signup"
             onSuccess={() => navigate('/onboarding')}
-            onError={(error) => setFormError({ message: error.message })}
+            onError={(error) => setFormError({ message: error.message || '소셜 로그인 중 오류가 발생했습니다.' })}
             disabled={isSubmitting}
           />
         </Box>

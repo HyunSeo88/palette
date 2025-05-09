@@ -37,10 +37,12 @@ export interface AuthContextType {
   updateProfile: (userData: Partial<User>) => Promise<boolean>;
   resetPassword: (email: string) => Promise<boolean>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
-  socialLogin: (provider: 'google' | 'kakao', token: string) => Promise<boolean>;
+  socialLogin: (provider: 'google' | 'kakao', token: string, intent: 'login' | 'signup') => Promise<{ success: boolean; isNewUser?: boolean; errorCode?: string; message?: string; tempKakaoProfile?: any }>;
   clearError: () => void;
   verifyEmail: (token: string) => Promise<boolean>;
   resendVerificationEmail: (email: string) => Promise<boolean>;
+  completeKakaoSignup: (profileData: { kakaoId: string; email: string; nickname?: string; profileImage?: string; }) => Promise<{ success: boolean; isNewUser?: boolean; errorCode?: string; message?: string }>;
+  deleteAccount: (password?: string) => Promise<{ success: boolean; errorCode?: string; message?: string }>;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -121,15 +123,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     blockCheckAuthRef.current = true;
     let success = false;
     try {
+      console.log(`[AuthContext Login] Calling POST /api/auth/login for ${email}`);
       const response = await api.post('/auth/login', { email, password });
+      console.log('[AuthContext Login] API Response received:', response);
+
       if (response.data.success && response.data.token && response.data.refreshToken) {
+        console.log('[AuthContext Login] Login API call successful, setting tokens.');
         setTokens(response.data.token, response.data.refreshToken, rememberMe);
+        blockCheckAuthRef.current = false;
         await checkAuth();
-        success = authState.user !== null;
+        success = true;
       } else {
-        throw new Error(response.data.message || '로그인 실패');
+        console.warn('[AuthContext Login] Login API call failed or returned invalid data:', response.data);
+        throw new Error(response.data.message || '로그인 실패 (서버 응답 오류)');
       }
     } catch (error: any) {
+      console.error('[AuthContext Login] Error during API call or processing:', error.response || error);
       const errorMessage = error.response?.data?.message || error.message || '로그인 중 오류 발생';
        setAuthState(prev => ({ ...prev, error: errorMessage }));
       success = false;
@@ -137,8 +146,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
       blockCheckAuthRef.current = false;
     }
+    console.log(`[AuthContext Login] Returning success: ${success}`);
     return success;
-  }, [checkAuth]);
+  }, []);
 
   const register = useCallback(async (userData: RegisterData): Promise<AuthResponse> => {
     setIsLoading(true);
@@ -223,6 +233,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [checkAuth]);
 
   const logout = useCallback(() => {
+    const currentProvider = authState.user?.provider; // 현재 사용자 provider 정보 저장
+
     removeTokens();
     setAuthState(prev => ({
       ...prev,
@@ -230,7 +242,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       error: null,
       isEmailVerified: false
     }));
-  }, []);
+
+    // 카카오 SDK 로그아웃 처리
+    if (currentProvider === 'kakao') {
+      try {
+        const Kakao = (window as any).Kakao;
+        if (Kakao && Kakao.Auth && Kakao.Auth.getAccessToken()) {
+          Kakao.Auth.logout(() => {
+            console.log('[AuthContext] Kakao SDK logout successful');
+          });
+        } else {
+          console.log('[AuthContext] Kakao SDK not initialized or not logged in, skipping Kakao logout.');
+        }
+      } catch (e) {
+        console.error('[AuthContext] Error during Kakao SDK logout:', e);
+      }
+    }
+    // Google 로그아웃 (Google Identity Services gapi.auth2) - 현재는 GSI 사용으로 자동 처리 또는 명시적 revoke 불필요할 수 있음
+    // Google의 경우, GSI는 토큰 기반이며, 명시적인 SDK 레벨의 세션 로그아웃이 카카오와 다름.
+    // 클라이언트에서 토큰을 제거하는 것만으로 충분할 수 있음. 필요시 Google 문서를 참조하여 revokeToken 등의 처리를 할 수 있으나,
+    // 현재 구조에서는 removeTokens()가 주된 역할.
+
+  }, [authState.user?.provider]); // authState.user.provider를 의존성 배열에 추가
 
   const updateProfile = useCallback(async (userData: Partial<User>): Promise<boolean> => {
     const userId = authState.user?._id;
@@ -341,24 +374,103 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const socialLogin = useCallback(async (provider: 'google' | 'kakao', token: string): Promise<boolean> => {
+  const completeKakaoSignup = useCallback(async (profileData: { kakaoId: string; email: string; nickname?: string; profileImage?: string; }): Promise<{ success: boolean; isNewUser?: boolean; errorCode?: string; message?: string }> => {
     try {
-      setAuthState(prev => ({ ...prev, error: null }));
-      const response = await api.post<{ success: boolean; token: string; refreshToken: string; isNewUser: boolean }>(`/auth/${provider}`, {
-        token,
-      });
+      setAuthState(prev => ({ ...prev, error: null, isLoading: true }));
+      const response = await api.post<{
+        success: boolean;
+        token?: string;
+        refreshToken?: string;
+        isNewUser?: boolean;
+        errorCode?: string;
+        message?: string;
+      }>('/auth/kakao/complete-signup', profileData);
+
+      if (response.data.success && response.data.token && response.data.refreshToken) {
+        setTokens(response.data.token, response.data.refreshToken, true);
+        await checkAuth(); // Fetch user info and update state
+        setAuthState(prev => ({ ...prev, isLoading: false }));
+        return { success: true, isNewUser: response.data.isNewUser };
+      } else {
+        // Handle cases where signup might be successful but no tokens (should not happen for this flow ideally)
+        // Or if success is false
+        setAuthState(prev => ({ ...prev, isLoading: false, error: response.data.message || '카카오 계정 가입 완료에 실패했습니다.' }));
+        return { success: false, errorCode: response.data.errorCode, message: response.data.message };
+      }
+    } catch (error: any) {
+      const errResponse = error.response?.data;
+      const message = errResponse?.message || '카카오 계정 가입 완료 중 오류가 발생했습니다.';
+      const errorCode = errResponse?.errorCode;
+      console.error('[AuthContext completeKakaoSignup] Error:', error.response || error);
+      setAuthState(prev => ({ ...prev, isLoading: false, error: message }));
+      return { success: false, errorCode, message };
+    }
+  }, [checkAuth]);
+
+  const deleteAccount = useCallback(async (password?: string): Promise<{ success: boolean; errorCode?: string; message?: string }> => {
+    setAuthState(prev => ({ ...prev, error: null, isLoading: true }));
+    try {
+      const response = await api.post<{
+        success: boolean;
+        errorCode?: string;
+        message?: string;
+      }>('/auth/delete-account', { password }); // password가 undefined여도 괜찮음 (소셜 유저)
+
+      if (response.data.success) {
+        logout(); // 기존 logout 함수 호출하여 토큰 제거 및 상태 업데이트
+        setAuthState(prev => ({ ...prev, isLoading: false, user: null, error: null })); // 확실하게 초기화
+        return { success: true, message: response.data.message };
+      } else {
+        setAuthState(prev => ({ ...prev, isLoading: false, error: response.data.message || '계정 삭제에 실패했습니다.' }));
+        return { success: false, errorCode: response.data.errorCode, message: response.data.message };
+      }
+    } catch (error: any) {
+      const errResponse = error.response?.data;
+      const message = errResponse?.message || '계정 삭제 중 오류가 발생했습니다.';
+      const errorCode = errResponse?.errorCode;
+      console.error('[AuthContext deleteAccount] Error:', error.response || error);
+      setAuthState(prev => ({ ...prev, isLoading: false, error: message }));
+      return { success: false, errorCode, message };
+    }
+  }, [logout, checkAuth]); // checkAuth는 직접 호출되지 않지만 logout 내부에서 간접적 영향 고려 가능성 (일단 logout만 명시)
+
+  const socialLogin = useCallback(async (provider: 'google' | 'kakao', token: string, intent: 'login' | 'signup'): Promise<{ success: boolean; isNewUser?: boolean; errorCode?: string; message?: string; tempKakaoProfile?: any }> => {
+    try {
+      setAuthState(prev => ({ ...prev, error: null, isLoading: true }));
+      const response = await api.post<{ 
+        success: boolean; 
+        token?: string; 
+        refreshToken?: string; 
+        isNewUser?: boolean; 
+        errorCode?: string; 
+        message?: string;
+        tempKakaoProfile?: any;
+      }>(
+        `/auth/${provider}`,
+        { token, intent }
+      );
 
       if (response.data.success) {
         const { token: authToken, refreshToken, isNewUser } = response.data;
-        setTokens(authToken, refreshToken, true);
-        await checkAuth();
-        return isNewUser;
+        if (authToken && refreshToken) {
+            setTokens(authToken, refreshToken, true);
+            await checkAuth();
+            setAuthState(prev => ({ ...prev, isLoading: false }));
+            return { success: true, isNewUser: !!isNewUser };
+        }
+        setAuthState(prev => ({ ...prev, isLoading: false, error: response.data.message || '소셜 로그인 응답이 올바르지 않습니다.' }));
+        return { success: true, isNewUser: !!isNewUser, errorCode: response.data.errorCode, message: response.data.message, tempKakaoProfile: response.data.tempKakaoProfile };
       }
-      return false;
+      setAuthState(prev => ({ ...prev, isLoading: false, error: response.data.message || '소셜 로그인 실패' }));
+      return { success: false, errorCode: response.data.errorCode, message: response.data.message, tempKakaoProfile: response.data.tempKakaoProfile };
+
     } catch (error: any) {
-      const message = error.response?.data?.message || '소셜 로그인 중 오류가 발생했습니다.';
-      setAuthState(prev => ({ ...prev, error: message }));
-      throw new Error(message);
+      const errResponse = error.response?.data;
+      const message = errResponse?.message || '소셜 로그인 중 오류가 발생했습니다.';
+      const errorCode = errResponse?.errorCode;
+      console.error('[AuthContext socialLogin] Error:', error.response || error);
+      setAuthState(prev => ({ ...prev, isLoading: false, error: message }));
+      return { success: false, errorCode, message, tempKakaoProfile: errResponse?.tempKakaoProfile };
     }
   }, [checkAuth]);
 
@@ -377,7 +489,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     socialLogin,
     clearError,
     verifyEmail,
-    resendVerificationEmail
+    resendVerificationEmail,
+    completeKakaoSignup,
+    deleteAccount,
   };
 
   return (

@@ -10,6 +10,7 @@ export interface UserBase {
   colorVisionType: ColorVisionType;
   bio?: string;
   photoURL?: string;
+  provider: 'email' | 'google' | 'kakao';
   createdAt: string;
   updatedAt: string;
   displayName: string;

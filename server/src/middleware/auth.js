@@ -88,8 +88,8 @@ exports.generateToken = (user) => {
   );
 };
 
-// 토큰 응답 유틸리티 함수
-const sendTokenResponse = (user, statusCode, res) => {
+// 토큰 응답 유틸리티 함수 수정
+const sendTokenResponse = (user, statusCode, res, isNewUserParam = false) => {
   const token = exports.generateToken(user);
   const refreshToken = jwt.sign(
     { id: user._id },
@@ -97,11 +97,14 @@ const sendTokenResponse = (user, statusCode, res) => {
     { expiresIn: '7d' }
   );
 
-  res.status(statusCode).json({
+  const responseData = {
     success: true,
     token,
-    refreshToken
-  });
+    refreshToken,
+    isNewUser: !!isNewUserParam
+  };
+
+  res.status(statusCode).json(responseData);
 };
 
 module.exports = { 

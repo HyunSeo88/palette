@@ -6,7 +6,7 @@ const { auth: protect, generateToken, sendTokenResponse } = require('../middlewa
 const { sendVerificationEmail } = require('../utils/email');
 const crypto = require('crypto');
 const { registerRules, validate } = require('../middleware/validation');
-const { register, verifyEmail } = require('../controllers/auth');
+const { register, verifyEmail, googleLogin, kakaoLogin, completeKakaoSignup, updatePassword, deleteAccount } = require('../controllers/auth');
 
 // 입력 유효성 검사 미들웨어
 const validateRegister = [
@@ -200,5 +200,13 @@ router.put('/password', protect, [
     next(error);
   }
 });
+
+// 소셜 로그인 라우트 추가
+router.post('/google', googleLogin);
+router.post('/kakao', kakaoLogin);
+router.post('/kakao/complete-signup', completeKakaoSignup);
+
+// 회원 탈퇴 라우트 추가
+router.post('/delete-account', protect, deleteAccount);
 
 module.exports = router;

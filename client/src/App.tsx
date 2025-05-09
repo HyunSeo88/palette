@@ -10,6 +10,8 @@ import SettingsPage from './pages/SettingsPage';
 import MyPage from './pages/MyPage';
 import RegisterPage from './pages/RegisterPage';
 import EmailVerification from './components/auth/EmailVerification';
+import SocialOnboardingPage from './pages/SocialOnboardingPage';
+import SocialEmailRequestPage from './pages/SocialEmailRequestPage';
 
 const App: React.FC = () => {
   const { user } = useAuth();
@@ -24,6 +26,8 @@ const App: React.FC = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/verify-email" element={<EmailVerification />} />
+          <Route path="/social-onboarding" element={<SocialOnboardingPage />} />
+          <Route path="/social-email-request" element={<SocialEmailRequestPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/mypage" element={
             user ? <MyPage /> : <Navigate to="/login" replace />

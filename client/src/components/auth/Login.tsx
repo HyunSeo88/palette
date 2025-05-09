@@ -154,7 +154,7 @@ const Login: React.FC = () => {
           )}
         </SubmitButton>
 
-        <SocialLogin disabled={isSubmitting} />
+        <SocialLogin disabled={isSubmitting} flowIntent="login" />
 
         <Box mt={2} display="flex" flexDirection="column" alignItems="center" gap={1}>
           <Typography variant="body2">

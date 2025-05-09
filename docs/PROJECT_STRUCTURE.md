@@ -27,6 +27,12 @@ palette/
 │   │   │   └── MainLayout/
 │   │   │       ├── MainLayout.tsx          # 메인 레이아웃 컴포넌트
 │   │   │       └── MainLayout.styles.ts    # 레이아웃 스타일
+│   │   ├── pages/                  # 페이지 컴포넌트
+│   │   │   ├── LoginPage.tsx         # 로그인 페이지
+│   │   │   ├── RegisterPage.tsx      # 회원가입 페이지
+│   │   │   ├── MyPage.tsx            # 마이 페이지
+│   │   │   ├── SettingsPage.tsx      # 설정 페이지
+│   │   │   └── SocialOnboardingPage.tsx # 소셜 가입 후 추가 정보 입력 페이지
 │   │   ├── contexts/
 │   │   │   └── AuthContext.tsx     # 인증 컨텍스트
 │   │   ├── utils/

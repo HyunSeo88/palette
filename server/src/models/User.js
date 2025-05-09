@@ -11,8 +11,8 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, '비밀번호는 필수 입력 항목입니다.'],
     minlength: [8, '비밀번호는 최소 8자 이상이어야 합니다.'],
+    select: false,
   },
   nickname: {
     type: String,
@@ -52,13 +52,24 @@ const userSchema = new mongoose.Schema({
   emailVerificationExpires: Date,
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+
+  provider: {
+    type: String,
+    required: [true, '가입 방식 정보가 필요합니다.'],
+    enum: ['email', 'google', 'kakao'],
+    default: 'email',
+  },
+  socialId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
 }, {
   timestamps: true,
 });
 
-// 비밀번호 해싱 미들웨어
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password') || !this.password) {
     return next();
   }
   
@@ -71,8 +82,10 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// 비밀번호 확인 메서드
 userSchema.methods.matchPassword = async function(enteredPassword) {
+  if (!this.password) {
+    return false;
+  }
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
