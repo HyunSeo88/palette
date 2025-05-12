@@ -17,8 +17,9 @@ const auth = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // 사용자 존재 여부 확인
-      const user = await User.findById(decoded.id).select('-password');
+      // 사용자 존재 여부 확인. password는 스키마에서 select: false이므로 기본적으로 제외됨.
+      // socialLinks는 일반 필드처럼 포함되어야 함.
+      const user = await User.findById(decoded.id);
       
       if (!user) {
         return res.status(401).json({
@@ -89,19 +90,33 @@ exports.generateToken = (user) => {
 };
 
 // 토큰 응답 유틸리티 함수 수정
-const sendTokenResponse = (user, statusCode, res, isNewUserParam = false) => {
+const sendTokenResponse = (user, statusCode, res, options = {}) => {
   const token = exports.generateToken(user);
   const refreshToken = jwt.sign(
     { id: user._id },
     process.env.JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '7d' } // Refresh token expires in 7 days
   );
+
+  // Ensure password is not included in the user object sent in the response
+  const userObject = user.toObject ? user.toObject() : { ...user };
+  delete userObject.password; 
+  // Remove sensitive tokens if they were accidentally included, though select('-password') should handle most User model fields.
+  // However, processSocialLogin might pass a user object that wasn't freshly queried with select.
+  delete userObject.emailVerificationToken;
+  delete userObject.emailVerificationExpires;
+  delete userObject.passwordResetToken;
+  delete userObject.passwordResetExpires;
 
   const responseData = {
     success: true,
     token,
     refreshToken,
-    isNewUser: !!isNewUserParam
+    user: userObject, // Send user object in response
+    message: options.message || (options.isNewUser ? '성공적으로 처리되었습니다 (새 사용자)' : '성공적으로 처리되었습니다.'),
+    isNewUser: !!options.isNewUser, // Ensure boolean
+    linkedAccount: !!options.linkedAccount, // Ensure boolean
+    ...(options.additionalData || {}) // Allow any other data to be passed
   };
 
   res.status(statusCode).json(responseData);

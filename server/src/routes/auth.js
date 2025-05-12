@@ -206,6 +206,10 @@ router.post('/google', googleLogin);
 router.post('/kakao', kakaoLogin);
 router.post('/kakao/complete-signup', completeKakaoSignup);
 
+// New protected routes for linking social accounts
+router.post('/link/google', protect, googleLogin); 
+router.post('/link/kakao', protect, kakaoLogin);
+
 // 회원 탈퇴 라우트 추가
 router.post('/delete-account', protect, deleteAccount);
 

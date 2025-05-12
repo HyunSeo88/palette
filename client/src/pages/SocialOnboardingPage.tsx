@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { User } from '../types/user'; // User 타입을 가져옵니다.
+import { User } from '../types/user';
+import { Container, Typography, Paper, Box, TextField, Button, CircularProgress, Alert } from '@mui/material';
+import BackButton from '../components/common/BackButton';
 
 const SocialOnboardingPage: React.FC = () => {
   const { user, updateProfile, loading: authLoading, isAuthenticated } = useAuth();
@@ -69,68 +71,84 @@ const SocialOnboardingPage: React.FC = () => {
   // authLoading 중이거나, 인증은 되었지만 user 객체가 아직 없을 때 (드문 경우)
   if (authLoading || (isAuthenticated && !user)) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        Loading user data...
-      </div>
+      <Box position="relative">
+        <BackButton position="fixed" top={24} left={24} />
+        <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <CircularProgress />
+        </Container>
+      </Box>
     );
   }
   
   // 인증되지 않은 사용자는 useEffect에서 /login으로 보냅니다.
   if (!isAuthenticated) {
-      return null; // Or a more specific "Redirecting to login..." message
+    return null; // Or a more specific "Redirecting to login..." message
   }
 
   return (
-    <div style={{ maxWidth: '500px', margin: '50px auto', padding: '30px', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-      <h1 style={{ textAlign: 'center', color: '#333', marginBottom: '10px' }}>프로필 설정</h1>
-      <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px' }}>
-        Palette 커뮤니티 활동을 위해 프로필을 설정해주세요.
-      </p>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '20px' }}>
-          <label htmlFor="nickname" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#444' }}>닉네임 <span style={{color: 'red'}}>*</span></label>
-          <input
-            type="text"
-            id="nickname"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="2~30자 이내로 입력"
-            required
-            style={{ width: '100%', padding: '12px', boxSizing: 'border-box', border: '1px solid #ccc', borderRadius: '4px' }}
-          />
-        </div>
-        <div style={{ marginBottom: '25px' }}>
-          <label htmlFor="bio" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#444' }}>자기소개</label>
-          <textarea
-            id="bio"
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            rows={4}
-            maxLength={200}
-            placeholder="자신을 간단하게 소개해주세요 (최대 200자)"
-            style={{ width: '100%', padding: '12px', boxSizing: 'border-box', border: '1px solid #ccc', borderRadius: '4px', resize: 'vertical' }}
-          />
-        </div>
-        {error && <p style={{ color: 'red', marginBottom: '15px', textAlign: 'center' }}>{error}</p>}
-        <button 
-          type="submit" 
-          disabled={isSubmitting || authLoading} 
-          style={{ 
-            width: '100%', 
-            padding: '12px 15px', 
-            backgroundColor: (isSubmitting || authLoading) ? '#ccc' : '#007bff', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px', 
-            cursor: (isSubmitting || authLoading) ? 'not-allowed' : 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold'
-          }}
-        >
-          {isSubmitting ? '저장하는 중...' : 'Palette 시작하기'}
-        </button>
-      </form>
-    </div>
+    <Box position="relative">
+      <BackButton position="fixed" top={24} left={24} />
+      <Container maxWidth="sm" sx={{ mt: 6, mb: 4 }}>
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+          <Typography variant="h4" component="h1" gutterBottom align="center">
+            프로필 설정
+          </Typography>
+          <Typography variant="body1" color="textSecondary" align="center" sx={{ mb: 4 }}>
+            Palette 커뮤니티 활동을 위해 프로필을 설정해주세요.
+          </Typography>
+          
+          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+            <TextField
+              fullWidth
+              label="닉네임"
+              id="nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="2~30자 이내로 입력"
+              required
+              margin="normal"
+              sx={{ mb: 3 }}
+            />
+            
+            <TextField
+              fullWidth
+              label="자기소개"
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="자신을 간단하게 소개해주세요 (최대 200자)"
+              multiline
+              rows={4}
+              inputProps={{ maxLength: 200 }}
+              margin="normal"
+              sx={{ mb: 3 }}
+            />
+            
+            {error && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {error}
+              </Alert>
+            )}
+            
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              disabled={isSubmitting || authLoading}
+              size="large"
+              sx={{ py: 1.5 }}
+            >
+              {isSubmitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Palette 시작하기'
+              )}
+            </Button>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 const User = require('../models/User');
+const { linkSocialAccount, unlinkSocialAccount } = require('../controllers/userController');
 
 // Get user profile
 router.get('/me', auth, async (req, res) => {
@@ -65,5 +66,11 @@ router.delete('/:id', auth, async (req, res) => {
     res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
   }
 });
+
+// Link social account
+router.post('/me/link-social', auth, linkSocialAccount);
+
+// Unlink social account
+router.post('/me/unlink-social', auth, unlinkSocialAccount);
 
 module.exports = router; 

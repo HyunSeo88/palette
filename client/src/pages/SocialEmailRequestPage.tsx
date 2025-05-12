@@ -5,6 +5,7 @@ import { Container, TextField, Button, Typography, Paper, Box, CircularProgress,
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import BackButton from '../components/common/BackButton';
 
 const emailSchema = z.object({
   email: z.string().email('유효한 이메일 주소를 입력해주세요.'),
@@ -81,57 +82,63 @@ const SocialEmailRequestPage: React.FC = () => {
 
   if (!tempKakaoProfile || provider !== 'kakao') {
     return (
-      <Container maxWidth="xs" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Container>
+      <Box position="relative">
+        <BackButton position="fixed" top={24} left={24} />
+        <Container maxWidth="xs" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <CircularProgress />
+        </Container>
+      </Box>
     );
   }
 
   return (
-    <Container component="main" maxWidth="xs" sx={{ mt: 8 }}>
-      <Paper elevation={3} sx={{ padding: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography component="h1" variant="h5" gutterBottom>
-          카카오 계정 이메일 등록
-        </Typography>
-        <Typography variant="body2" color="textSecondary" align="center" sx={{ mb: 3 }}>
-          안녕하세요, {tempKakaoProfile.nickname || '사용자'}님! Palette 서비스 가입을 위해 이메일 주소를 입력해주세요.
-        </Typography>
-        
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ width: '100%' }}>
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="이메일 주소"
-            autoComplete="email"
-            autoFocus
-            {...register('email')}
-            error={!!errors.email}
-            helperText={errors.email?.message}
-          />
+    <Box position="relative">
+      <BackButton position="fixed" top={24} left={24} />
+      <Container component="main" maxWidth="xs" sx={{ mt: 8 }}>
+        <Paper elevation={3} sx={{ padding: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography component="h1" variant="h5" gutterBottom>
+            카카오 계정 이메일 등록
+          </Typography>
+          <Typography variant="body2" color="textSecondary" align="center" sx={{ mb: 3 }}>
+            안녕하세요, {tempKakaoProfile.nickname || '사용자'}님! Palette 서비스 가입을 위해 이메일 주소를 입력해주세요.
+          </Typography>
           
-          {apiError && (
-            <Alert severity="error" sx={{ mt: 2, mb: 1, width: '100%' }}>
-              {apiError}
-            </Alert>
-          )}
+          <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ width: '100%' }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="이메일 주소"
+              autoComplete="email"
+              autoFocus
+              {...register('email')}
+              error={!!errors.email}
+              helperText={errors.email?.message}
+            />
+            
+            {apiError && (
+              <Alert severity="error" sx={{ mt: 2, mb: 1, width: '100%' }}>
+                {apiError}
+              </Alert>
+            )}
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-            disabled={isLoading}
-          >
-            {isLoading ? <CircularProgress size={24} /> : '제출하고 가입 완료'}
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              disabled={isLoading}
+            >
+              {isLoading ? <CircularProgress size={24} /> : '제출하고 가입 완료'}
+            </Button>
+          </Box>
+          <Button fullWidth onClick={() => navigate('/login')}>
+            로그인 페이지로 돌아가기
           </Button>
-        </Box>
-        <Button fullWidth onClick={() => navigate('/login')}>
-          로그인 페이지로 돌아가기
-        </Button>
-      </Paper>
-    </Container>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 

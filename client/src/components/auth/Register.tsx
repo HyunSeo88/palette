@@ -30,6 +30,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { registerSchema, type RegisterFormData } from '../../utils/validationSchemas';
 import SocialLogin from './SocialLogin';
+import BackButton from '../common/BackButton';
 
 const FormContainer = styled(Container)(({ theme }) => ({
   marginTop: theme.spacing(8),
@@ -177,13 +178,14 @@ const Register = () => {
   return (
     <FormContainer maxWidth="xs">
       <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', mb: 3, position: 'relative' }}>
-        <IconButton
-          onClick={handleBack}
-          sx={{ position: 'absolute', left: 0 }}
-          aria-label="뒤로 가기"
-        >
-          <ArrowBackIcon />
-        </IconButton>
+        <BackButton 
+          position="absolute" 
+          left={0} 
+          top="50%" 
+          zIndex={1}
+          tooltip="뒤로 가기"
+          sx={{ transform: 'translateY(-50%)' }}
+        />
         <Typography component="h1" variant="h5" sx={{ width: '100%', textAlign: 'center' }}>
           회원가입
         </Typography>

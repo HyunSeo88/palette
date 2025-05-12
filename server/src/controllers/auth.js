@@ -134,8 +134,11 @@ exports.verifyEmail = async (req, res, next) => {
     user.emailVerificationExpires = undefined;
     await user.save();
 
-    // 로그인과 동일하게 토큰 응답 전송
-    sendTokenResponse(user, 200, res);
+    // Do not send tokens. Just confirm success.
+    res.status(200).json({
+      success: true,
+      message: '이메일 인증이 성공적으로 완료되었습니다. 이제 로그인 페이지에서 로그인해주세요.'
+    });
 
   } catch (error) {
     console.error('[Server VerifyEmail] Error caught:', error);
@@ -148,25 +151,40 @@ exports.googleLogin = async (req, res, next) => {
   const { token, intent } = req.body;
 
   if (!token) {
-    return res.status(400).json({ success: false, message: 'Google ID 토큰이 필요합니다.' });
+    return res.status(400).json({ success: false, message: 'Google ID 토큰이 필요합니다.' }); // 클라이언트에게는 여전히 "Google ID 토큰"이라고 안내해도 무방 (또는 "Google 토큰")
   }
-  if (!intent || !['login', 'signup'].includes(intent)) {
-    return res.status(400).json({ success: false, message: "로그인 또는 회원가입 의도가 명확해야 합니다. (intent: 'login' or 'signup')" });
+  if (!intent || !['login', 'signup', 'link'].includes(intent)) {
+    return res.status(400).json({ success: false, message: "로그인, 회원가입 또는 계정연동 의도가 명확해야 합니다. (intent: 'login', 'signup', or 'link')" });
   }
-  console.log(`[GoogleLogin Controller] Received token with intent: ${intent}`);
+  console.log(`[GoogleLogin Controller] Received Google token with intent: ${intent}. User from middleware: ${req.user ? req.user.id : 'None'}`);
 
   try {
     const socialProfile = await getSocialUserInfo('google', token);
-    await processSocialLogin(socialProfile, intent, res, next);
+    await processSocialLogin(socialProfile, intent, req, res, next);
   } catch (error) {
-    console.error('[GoogleLogin Controller] Error caught during getSocialUserInfo or initial processing:', error);
-    if (error.message.includes('Token used too late') || 
-        error.message.includes('Invalid token signature') || 
-        error.message.includes('Audience mismatch') ||
-        error.message.includes('Google 토큰 검증에 실패했습니다')) {
-        return res.status(401).json({ success: false, message: '유효하지 않거나 만료된 Google 토큰입니다.', errorCode: 'INVALID_GOOGLE_TOKEN' });
+    console.error('[GoogleLogin Controller] Error caught:', error.message); // Log the actual error message
+
+    // getSocialUserInfo에서 발생시킨 특정 오류 메시지들을 확인
+    if (error.message.includes('Google 토큰이 유효하지 않거나 만료되었습니다') || 
+        error.message.includes('Google 사용자 정보 조회에 실패했거나 필수 정보(ID)가 없습니다') ||
+        error.message.includes('Google API에서 응답을 받지 못했습니다') ||
+        error.message.includes('Google API 요청 설정 중 오류가 발생했습니다') ||
+        error.message.includes('Google API 오류:')) { // 일반적인 Google API 오류 포함
+        return res.status(401).json({ 
+          success: false, 
+          message: error.message, // getSocialUserInfo에서 생성된 구체적인 메시지 사용
+          errorCode: 'INVALID_GOOGLE_TOKEN_OR_INFO' 
+        });
     }
-    // Pass other errors to the generic error handler (which might be inside processSocialLogin or Express default)
+    // 이전에 사용하던 일반적인 토큰 오류 메시지 (참고용, 위의 조건에서 대부분 처리될 것임)
+    // if (error.message.includes('Token used too late') || 
+    //     error.message.includes('Invalid token signature') || 
+    //     error.message.includes('Audience mismatch') ||
+    //     error.message.includes('Google 토큰 검증에 실패했습니다')) {
+    //     return res.status(401).json({ success: false, message: '유효하지 않거나 만료된 Google 토큰입니다.', errorCode: 'INVALID_GOOGLE_TOKEN' });
+    // }
+    
+    // 그 외 예상치 못한 오류는 다음 에러 핸들러로 전달 (500 오류 유발 가능)
     next(error); 
   }
 };
@@ -178,14 +196,14 @@ exports.kakaoLogin = async (req, res, next) => {
   if (!kakaoAccessToken) {
     return res.status(400).json({ success: false, message: 'Kakao 액세스 토큰이 필요합니다.' });
   }
-  if (!intent || !['login', 'signup'].includes(intent)) {
-    return res.status(400).json({ success: false, message: "로그인 또는 회원가입 의도가 명확해야 합니다. (intent: 'login' or 'signup')" });
+  if (!intent || !['login', 'signup', 'link'].includes(intent)) {
+    return res.status(400).json({ success: false, message: "로그인, 회원가입 또는 계정연동 의도가 명확해야 합니다. (intent: 'login', 'signup', or 'link')" });
   }
-  console.log(`[KakaoLogin Controller] Received token with intent: ${intent}`);
+  console.log(`[KakaoLogin Controller] Received Kakao token with intent: ${intent}. User from middleware: ${req.user ? req.user.id : 'None'}`);
 
   try {
     const socialProfile = await getSocialUserInfo('kakao', kakaoAccessToken);
-    await processSocialLogin(socialProfile, intent, res, next);
+    await processSocialLogin(socialProfile, intent, req, res, next);
   } catch (error) {
     console.error('[KakaoLogin Controller] Error caught during getSocialUserInfo or initial processing:', error.response ? error.response.data : error.message);
     if (error.message.includes('Kakao 사용자 정보를 가져오는데 실패했습니다')) { 

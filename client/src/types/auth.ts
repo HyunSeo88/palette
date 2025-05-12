@@ -1,4 +1,4 @@
-import { ColorVisionType } from './user';
+import { ColorVisionType, User as MainUser } from './user';
 
 export interface AuthError {
   success: false;
@@ -57,13 +57,6 @@ export interface LoginData {
   rememberMe: boolean;
 }
 
-export interface User {
-  _id: string;
-  email: string;
-  nickname: string;
-  colorVisionType: ColorVisionType;
-  bio?: string;
-  isEmailVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-} 
+// Re-export the main User type for use in auth contexts
+// This ensures consistency with the comprehensive User definition
+export type User = MainUser; 

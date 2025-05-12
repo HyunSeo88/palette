@@ -7,7 +7,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import PersonIcon from '@mui/icons-material/Person';
 import EditIcon from '@mui/icons-material/Edit';
 import LockResetIcon from '@mui/icons-material/LockReset';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import BackButton from '../components/common/BackButton';
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(4),
@@ -80,13 +80,11 @@ const MyPage: React.FC = () => {
   return (
     <StyledContainer maxWidth="sm">
       <StyledPaper>
-        <IconButton 
-          onClick={() => navigate(-1)} 
-          sx={{ position: 'absolute', top: theme => theme.spacing(2), left: theme => theme.spacing(2) }}
-          aria-label="뒤로 가기"
-        >
-          <ArrowBackIcon />
-        </IconButton>
+        <BackButton 
+          position="absolute" 
+          top={16}
+          left={16}
+        />
         <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mt: 2 }}>
           마이페이지
         </Typography>

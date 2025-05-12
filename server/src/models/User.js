@@ -4,10 +4,14 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: [true, '이메일은 필수 입력 항목입니다.'],
+    required: [true, '이메일 주소를 입력해주세요.'],
     unique: true,
-    trim: true,
+    match: [
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+      '유효한 이메일 주소를 입력해주세요.',
+    ],
     lowercase: true,
+    trim: true,
   },
   password: {
     type: String,
@@ -16,10 +20,11 @@ const userSchema = new mongoose.Schema({
   },
   nickname: {
     type: String,
-    required: [true, '닉네임은 필수 입력 항목입니다.'],
+    required: [true, '닉네임을 입력해주세요.'],
+    unique: true,
+    minlength: [2, '닉네임은 2자 이상, 30자 이하로 입력해주세요.'],
+    maxlength: [30, '닉네임은 2자 이상, 30자 이하로 입력해주세요.'],
     trim: true,
-    minlength: [2, '닉네임은 최소 2자 이상이어야 합니다.'],
-    maxlength: [30, '닉네임은 최대 30자까지 가능합니다.'],
   },
   colorVisionType: {
     type: String,
@@ -32,7 +37,7 @@ const userSchema = new mongoose.Schema({
   },
   bio: {
     type: String,
-    maxlength: [200, '자기소개는 최대 200자까지 가능합니다.'],
+    maxlength: [150, '자기소개는 최대 150자까지 입력 가능합니다.'],
     default: '',
   },
   role: {
@@ -50,20 +55,40 @@ const userSchema = new mongoose.Schema({
   },
   emailVerificationToken: String,
   emailVerificationExpires: Date,
-  resetPasswordToken: String,
-  resetPasswordExpires: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 
   provider: {
     type: String,
-    required: [true, '가입 방식 정보가 필요합니다.'],
+    required: true,
     enum: ['email', 'google', 'kakao'],
     default: 'email',
   },
-  socialId: {
-    type: String,
-    unique: true,
-    sparse: true,
-  },
+  socialLinks: [
+    {
+      provider: {
+        type: String,
+        required: true,
+        enum: ['google', 'kakao'],
+      },
+      socialId: {
+        type: String,
+        required: true,
+      },
+      email: {
+        type: String,
+        lowercase: true,
+        trim: true,
+      },
+      nickname: String,
+      profileImage: String,
+      isVerified: Boolean,
+      linkedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    }
+  ],
 }, {
   timestamps: true,
 });
