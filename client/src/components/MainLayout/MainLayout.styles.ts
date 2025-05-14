@@ -59,7 +59,6 @@ interface LeftPanelProps {
 
 interface MenuItemProps {
   isactive: string;
-  color: string;
 }
 
 interface MenuIconProps {
@@ -106,66 +105,51 @@ export const MainContent = styled(Box)({
 });
 
 export const LeftPanel = styled(Box)<LeftPanelProps>(({ open, theme }) => ({
-  width: '280px',
+  width: STYLE_CONSTANTS.PANEL_WIDTH,
   flexShrink: 0,
+  backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900],
+  borderRight: `1px solid ${theme.palette.divider}`,
+  padding: STYLE_CONSTANTS.SPACING.SM,
   display: 'flex',
   flexDirection: 'column',
-  borderRight: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
   transition: 'transform 0.3s ease',
   [`@media (max-width: ${theme.breakpoints.values.sm}px)`]: {
     position: 'fixed',
-    top: '64px',
+    top: STYLE_CONSTANTS.HEADER_HEIGHT,
     bottom: 0,
     transform: open ? 'translateX(0)' : 'translateX(-100%)',
     zIndex: 1000,
+    boxShadow: theme.shadows[3],
   },
 }));
 
-export const MenuItem = styled(Box)<MenuItemProps>(({ theme, isactive, color }) => ({
+export const MenuItem = styled(Box)<MenuItemProps>(({ theme, isactive }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1.5),
   padding: theme.spacing(1.5, 2),
   cursor: 'pointer',
-  borderRadius: theme.shape.borderRadius,
-  transition: 'all 0.3s ease',
-  position: 'relative',
-  overflow: 'hidden',
-
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: '4px',
-    backgroundColor: color,
-    opacity: isactive === 'true' ? 1 : 0,
-    transition: 'opacity 0.3s ease',
-  },
+  borderRadius: '12px',
+  transition: 'background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+  marginBottom: theme.spacing(1),
+  color: theme.palette.text.secondary,
+  fontWeight: 500,
 
   '& .MuiTypography-root': {
     transition: 'color 0.3s ease',
-  },
-
-  '& .MuiTypography-body1': {
-    color: isactive === 'true' ? color : theme.palette.text.primary,
-    fontWeight: isactive === 'true' ? 600 : 400,
+    fontWeight: 'inherit',
   },
 
   '&:hover': {
-    backgroundColor: alpha(color, 0.08),
-    '& .MuiTypography-body1': {
-      color: color,
-    },
-    '&::before': {
-      opacity: 0.5,
-    },
+    backgroundColor: alpha(theme.palette.common.white, 0.50),
+    color: theme.palette.text.primary,
   },
 
   ...(isactive === 'true' && {
-    backgroundColor: alpha(color, 0.08),
+    backgroundColor: theme.palette.common.white,
+    boxShadow: theme.shadows[2],
+    color: theme.palette.primary.main,
+    fontWeight: 600,
   }),
 }));
 
@@ -190,13 +174,14 @@ export const CommunityStats = styled(Box)({
   marginBottom: STYLE_CONSTANTS.SPACING.XS,
 });
 
-export const RightPanel = styled(Box)({
+export const RightPanel = styled(Box)(({ theme }) => ({
   flex: 1,
   overflow: 'auto',
   scrollBehavior: 'smooth',
-  scrollSnapType: 'y mandatory',
   ...scrollbarStyle,
-});
+  padding: STYLE_CONSTANTS.SPACING.MD,
+  backgroundColor: alpha(theme.palette.primary.main, 0.03),
+}));
 
 export const Section = styled(Box)({
   minHeight: `calc(100vh - ${STYLE_CONSTANTS.HEADER_HEIGHT})`,
