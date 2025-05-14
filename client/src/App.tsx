@@ -7,7 +7,7 @@ import { useAuth } from './contexts/AuthContext';
 import MainLayout from './components/MainLayout/MainLayout';
 import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/SettingsPage';
-import MyPage from './pages/MyPage';
+import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
 import EmailVerification from './components/auth/EmailVerification';
 import SocialOnboardingPage from './pages/SocialOnboardingPage';
@@ -30,8 +30,9 @@ const App: React.FC = () => {
           <Route path="/social-email-request" element={<SocialEmailRequestPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/mypage" element={
-            user ? <MyPage /> : <Navigate to="/login" replace />
+            user ? <Navigate to={`/profile/${user.nickname}`} replace /> : <Navigate to="/login" replace />
           } />
+          <Route path="/profile/:userNickname" element={<ProfilePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </ThemeProvider>

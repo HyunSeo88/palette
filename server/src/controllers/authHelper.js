@@ -21,13 +21,13 @@ async function getSocialUserInfo(provider, token) {
       if (!payload || !payload.sub) {
         console.error('[getSocialUserInfo] Google: Failed to get user info from userinfo endpoint or \'sub\' (socialId) is missing.');
         throw new Error('Google 사용자 정보 조회에 실패했거나 필수 정보(ID)가 없습니다.');
-      }
-      return {
-        socialId: payload.sub,
-        email: payload.email,
+    }
+    return {
+      socialId: payload.sub,
+      email: payload.email,
         nickname: payload.name || payload.given_name,
-        profileImage: payload.picture,
-        isSocialEmailVerified: payload.email_verified,
+      profileImage: payload.picture,
+      isSocialEmailVerified: payload.email_verified,
         provider: 'google'
       };
     } catch (error) {
@@ -56,24 +56,24 @@ async function getSocialUserInfo(provider, token) {
     // Kakao 로직은 변경 없음 (기존 코드 유지)
     try {
       console.log('[getSocialUserInfo] Kakao: Received token (Access Token), attempting to fetch userinfo.');
-      const kakaoUserResponse = await axios.get('https://kapi.kakao.com/v2/user/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'
-        }
-      });
-      const kakaoUserData = kakaoUserResponse.data;
-      console.log('[getSocialUserInfo] Kakao: Userinfo response payload:', kakaoUserData);
-      if (!kakaoUserData || !kakaoUserData.id) {
-        console.error('[getSocialUserInfo] Kakao: Failed to get user info from Kakao API or ID is missing.');
-        throw new Error('Kakao 사용자 정보를 가져오는데 실패했습니다.');
+    const kakaoUserResponse = await axios.get('https://kapi.kakao.com/v2/user/me', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'
       }
-      return {
-        socialId: String(kakaoUserData.id),
-        email: kakaoUserData.kakao_account?.email,
-        nickname: kakaoUserData.properties?.nickname,
-        profileImage: kakaoUserData.properties?.profile_image,
-        isSocialEmailVerified: kakaoUserData.kakao_account?.is_email_verified,
+    });
+    const kakaoUserData = kakaoUserResponse.data;
+      console.log('[getSocialUserInfo] Kakao: Userinfo response payload:', kakaoUserData);
+    if (!kakaoUserData || !kakaoUserData.id) {
+        console.error('[getSocialUserInfo] Kakao: Failed to get user info from Kakao API or ID is missing.');
+      throw new Error('Kakao 사용자 정보를 가져오는데 실패했습니다.');
+    }
+    return {
+      socialId: String(kakaoUserData.id),
+      email: kakaoUserData.kakao_account?.email,
+      nickname: kakaoUserData.properties?.nickname,
+      profileImage: kakaoUserData.properties?.profile_image,
+      isSocialEmailVerified: kakaoUserData.kakao_account?.is_email_verified,
         provider: 'kakao'
       };
     } catch (error) {
@@ -141,7 +141,7 @@ async function processSocialLogin(socialProfile, intent, req, res, next) {
         const emailParts = conflictingUser.email.split('@');
         const maskedEmail = emailParts[0].length > 3 ? `${emailParts[0].substring(0, 3)}***@${emailParts[1]}` : `***@${emailParts[1]}`;
         return res.status(409).json({ 
-          success: false, 
+                success: false, 
           message: `이 ${providerName} 계정은 이미 다른 Palette 사용자(${maskedEmail})에게 연결되어 있습니다.`,
           errorCode: 'SOCIAL_ACCOUNT_ALREADY_LINKED_TO_DIFFERENT_USER'
         });
@@ -213,7 +213,7 @@ async function processSocialLogin(socialProfile, intent, req, res, next) {
             if (socialEmail && link.email !== socialEmail) { link.email = socialEmail; linkUpdated = true; }
             if (linkUpdated) await user.save();
         }
-        isNewUserResponse = false;
+            isNewUserResponse = false;
         return sendTokenResponse(user, 200, res, { message: '소셜 계정으로 로그인되었습니다.', isNewUser: false });
       }
 
@@ -226,8 +226,8 @@ async function processSocialLogin(socialProfile, intent, req, res, next) {
         // If it's login, and no user was found by socialId, then it's an error.
         if (intent === 'signup') {
           console.error(`[ProcessSocialLogin - ${providerName} - Signup] Cannot signup without an email from social provider.`);
-          return res.status(400).json({ 
-            success: false, 
+            return res.status(400).json({
+              success: false,
             message: `${providerName} 계정에서 이메일 정보를 가져올 수 없습니다. ${providerName} 계정 설정을 확인하거나 다른 방법으로 가입해주세요.`,
             errorCode: 'SOCIAL_SIGNUP_NO_EMAIL' 
           });
@@ -252,7 +252,7 @@ async function processSocialLogin(socialProfile, intent, req, res, next) {
           let message = `이미 ${socialEmail} 주소로 가입된 계정이 있습니다. `;
           if (userByEmail.provider === 'email') {
             message += `이메일과 비밀번호로 로그인 후, 설정 페이지에서 ${providerName} 계정을 연결해주세요.`;
-          } else {
+      } else {
             message += `기존 ${userByEmail.provider} 계정으로 로그인 후, 설정 페이지에서 이 ${providerName} 계정을 추가로 연결하거나, 다른 이메일로 가입해주세요.`;
           }
           return res.status(409).json({ 
@@ -364,8 +364,8 @@ async function completeKakaoSignup(profileData, res, next) {
       } else {
         message += `기존 ${user.provider} 계정으로 로그인 후, 카카오 계정을 추가로 연결해주세요.`;
       }
-      return res.status(409).json({
-        success: false,
+      return res.status(409).json({ 
+          success: false, 
         message,
         errorCode: 'EMAIL_ALREADY_EXISTS_KAKAO_SIGNUP_COMPLETION'
       });

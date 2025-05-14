@@ -35,6 +35,7 @@ const EmailVerification: React.FC = () => {
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [message, setMessage] = useState<string>('이메일 인증을 진행중입니다...');
   const [isResending, setIsResending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const theme = useTheme();
 
   const state = location.state as LocationState;
@@ -48,32 +49,75 @@ const EmailVerification: React.FC = () => {
         if (state?.message) {
           setStatus('verifying');
           setMessage(state.message);
+          console.log('[EmailVerification] No token in URL, but state message exists:', state.message);
         } else {
           setStatus('error');
-          setMessage('유효하지 않은 인증 링크입니다.');
+          setMessage('유효하지 않은 인증 링크입니다. 토큰이 없습니다.');
+          console.error('[EmailVerification] Invalid verification link: No token in URL and no state message');
         }
         return;
       }
 
+      if (isVerifying) {
+        console.log('[EmailVerification] Verification API call already in progress, skipping.');
+        return;
+      }
+      // 현재 토큰에 대한 인증 상태가 이미 확정되었다면 중복 호출 방지
+      // (단, 이 useEffect는 token이 바뀔때만 실행되도록 의존성배열을 [token, verifyEmail]로 수정했으므로
+      // 이 조건은 token이 바뀌지 않았는데 다른 이유로 재실행될 경우를 위한 추가 방어막)
+      if (status === 'success' || status === 'error') {
+         console.log(`[EmailVerification] Status for current token is already '${status}', not re-verifying unless token changes.`);
+        return;
+      }
+      
+      setIsVerifying(true);
+      setStatus('verifying');
+      setMessage('이메일 인증을 진행중입니다...');
+      console.log('[EmailVerification] useEffect triggered. Token:', token, 'Attempting verification.');
+      
       try {
         const result = await verifyEmail(token);
-        if (result) {
+        console.log('[EmailVerification] verifyEmail API call returned:', result);
+        
+        if (result.success) {
           setStatus('success');
-          setMessage('이메일 인증이 성공적으로 완료되었습니다. 잠시 후 로그인 페이지로 이동합니다.');
-          // 3초 후 로그인 페이지로 이동
-          setTimeout(() => navigate('/login'), 3000);
+          setMessage(result.message || '이메일 인증이 성공적으로 완료되었습니다. 로그인 페이지로 직접 이동해주세요.');
         } else {
           setStatus('error');
-          setMessage(authContextValue.error || '이메일 인증에 실패했습니다. 다시 시도해주세요.');
+          setMessage(result.message || '이메일 인증에 실패했습니다. 다시 시도해주세요.'); 
+          console.error('[EmailVerification] Email verification failed from API:', result.message);
+
+          const currentEmailForResend = state?.email || localStorage.getItem('lastRegisteredEmail');
+          if (currentEmailForResend) {
+            console.log('[EmailVerification] Setting up state for resend option. Email:', currentEmailForResend);
+            // navigate가 useEffect를 다시 트리거하지 않도록 의존성 배열에서 state 관련 항목을 제거했으므로,
+            // 이 navigate는 더 이상 문제를 일으키지 않아야 합니다.
+            // 다만, state 업데이트가 꼭 필요한 경우인지 확인하는 조건 추가.
+            if (!state?.showResend || state?.email !== currentEmailForResend || state?.message !== (result.message || '인증 토큰이 만료되었거나 유효하지 않습니다. 인증 이메일을 재발송해주세요.')) {
+                setTimeout(() => {
+                    navigate(location.pathname + location.search, { 
+                      state: { 
+                        email: currentEmailForResend, 
+                        showResend: true,
+                        message: result.message || '인증 토큰이 만료되었거나 유효하지 않습니다. 인증 이메일을 재발송해주세요.' 
+                      },
+                      replace: true
+                    });
+                  }, 0);
+            }
+          }
         }
       } catch (error: any) {
         setStatus('error');
-        setMessage(error.message || '이메일 인증 중 오류가 발생했습니다.');
+        setMessage(error.message || '이메일 인증 중 네트워크 또는 시스템 오류가 발생했습니다.');
+        console.error('[EmailVerification] Exception during email verification:', error);
+      } finally {
+        setIsVerifying(false);
       }
     };
 
     verifyToken();
-  }, [token, verifyEmail, navigate, state, authContextValue]);
+  }, [token, verifyEmail]);
 
   const handleResendVerification = async () => {
     if (!state?.email || isResending) return;
@@ -81,10 +125,10 @@ const EmailVerification: React.FC = () => {
     setIsResending(true);
     try {
       const result = await resendVerificationEmail(state.email);
-      if (result) {
-        setMessage('인증 이메일이 재발송되었습니다. 이메일을 확인해주세요.');
+      if (result.success) {
+        setMessage(result.message || '인증 이메일이 재발송되었습니다. 이메일을 확인해주세요.');
       } else {
-        throw new Error('인증 이메일 재발송에 실패했습니다.');
+        setMessage(result.message || '인증 이메일 재발송에 실패했습니다.');
       }
     } catch (error: any) {
       setMessage(error.message || '인증 이메일 재발송 중 오류가 발생했습니다.');

@@ -97,22 +97,26 @@ exports.register = async (req, res, next) => {
 
 // 이메일 인증 컨트롤러 수정
 exports.verifyEmail = async (req, res, next) => {
+  console.log('[Server VerifyEmail] Request received:', req.body);
   try {
     // 토큰을 req.body에서 가져옴
     const { token } = req.body;
 
     if (!token) {
+      console.log('[Server VerifyEmail] Error: No token provided');
       return res.status(400).json({
         success: false,
         message: '인증 토큰이 필요합니다.'
       });
     }
 
+    console.log('[Server VerifyEmail] Token received:', token);
     // 원본 토큰으로 해시 생성 (DB와 비교하기 위해)
     const emailVerificationToken = crypto
       .createHash('sha256')
       .update(token)
       .digest('hex');
+    console.log('[Server VerifyEmail] Hashed token:', emailVerificationToken);
 
     // 토큰으로 사용자 찾기 (만료 시간 확인 포함)
     const user = await User.findOne({
@@ -121,18 +125,33 @@ exports.verifyEmail = async (req, res, next) => {
     });
 
     if (!user) {
-      // 해당 토큰을 가진 사용자가 없거나 만료된 경우
-      return res.status(400).json({
-        success: false,
-        message: '유효하지 않거나 만료된 인증 토큰입니다.'
+      // DB 상태를 로그로 확인
+      const anyUserWithToken = await User.findOne({
+        emailVerificationToken
       });
+      
+      if (anyUserWithToken) {
+        console.log('[Server VerifyEmail] Token found but expired. Expiry:', anyUserWithToken.emailVerificationExpires, 'Current time:', Date.now());
+        return res.status(400).json({
+          success: false,
+          message: '만료된 인증 토큰입니다. 인증 이메일을 재발송해주세요.'
+        });
+      } else {
+        console.log('[Server VerifyEmail] No user found with this token');
+        return res.status(400).json({
+          success: false,
+          message: '유효하지 않은 인증 토큰입니다. 인증 이메일을 재발송해주세요.'
+        });
+      }
     }
 
+    console.log('[Server VerifyEmail] User found:', user._id);
     // 이메일 인증 완료 처리
     user.isEmailVerified = true;
     user.emailVerificationToken = undefined;
     user.emailVerificationExpires = undefined;
     await user.save();
+    console.log('[Server VerifyEmail] Email verification successful for user:', user._id);
 
     // Do not send tokens. Just confirm success.
     res.status(200).json({

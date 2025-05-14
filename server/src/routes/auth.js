@@ -136,6 +136,16 @@ router.post('/login', [
       });
     }
 
+    // 이메일 인증 확인 추가
+    if (!user.isEmailVerified) {
+      return res.status(401).json({
+        success: false,
+        error: 'EMAIL_NOT_VERIFIED',
+        message: '이메일 인증이 필요합니다. 인증 이메일을 확인해주세요.',
+        email: user.email // 클라이언트에서 재발송 기능 제공을 위해 이메일 포함
+      });
+    }
+
     // 토큰 생성 및 응답
     sendTokenResponse(user, 200, res);
   } catch (error) {

@@ -39,8 +39,8 @@ export interface AuthContextType {
   updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   socialLogin: (provider: 'google' | 'kakao', token: string, intent: 'login' | 'signup' | 'link') => Promise<{ success: boolean; isNewUser?: boolean; errorCode?: string; message?: string; tempKakaoProfile?: any; user?: User }>;
   clearError: () => void;
-  verifyEmail: (token: string) => Promise<boolean>;
-  resendVerificationEmail: (email: string) => Promise<boolean>;
+  verifyEmail: (token: string) => Promise<{ success: boolean; message?: string }>;
+  resendVerificationEmail: (email: string) => Promise<{ success: boolean; message?: string }>;
   completeKakaoSignup: (profileData: { kakaoId: string; email: string; nickname?: string; profileImage?: string; }) => Promise<{ success: boolean; isNewUser?: boolean; errorCode?: string; message?: string }>;
   deleteAccount: (password?: string) => Promise<{ success: boolean; errorCode?: string; message?: string }>;
   refreshUserSession: () => Promise<void>;
@@ -164,6 +164,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (response.data.data?.requiresVerification) {
+        // 이메일 저장 - 인증 실패 시 재발송을 위해 사용
+        localStorage.setItem('lastRegisteredEmail', userData.email);
+        
         removeTokens();
         setAuthState(prev => ({
           ...prev,
@@ -320,47 +323,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const verifyEmail = useCallback(async (token: string): Promise<boolean> => {
-    try {
-      setAuthState(prev => ({ ...prev, error: null, isLoading: true }));
-      blockCheckAuthRef.current = true;
-      
-      const response = await api.post<{
-        success: boolean;
-        message?: string;
-      }>('/auth/verify-email', { token });
+  const verifyEmail = useCallback(async (token: string): Promise<{ success: boolean; message?: string }> => {
+    setIsLoading(true);
+    setAuthState(prev => ({ ...prev, error: null }));
+    // blockCheckAuthRef.current = true; // 중복 인증 방지는 EmailVerification.tsx에서 isVerifying 상태로 처리하므로, 여기서는 제거하거나 주석 처리.
 
-      if (response.data.success) {
-        setAuthState(prev => ({ ...prev, isLoading: false, error: null }));
-        blockCheckAuthRef.current = false;
-        return true;
-      }
+    try {
+      const response = await api.post<{ success: boolean; message?: string }>('/auth/verify-email', { token });
+      
       setAuthState(prev => ({ 
         ...prev, 
-        isLoading: false, 
-        error: response.data.message || '이메일 인증에 실패했습니다.' 
+        // isLoading: false, // finally에서 처리
+        error: response.data.success ? null : (response.data.message || '이메일 인증에 실패했습니다.') 
       }));
-      blockCheckAuthRef.current = false;
-      return false;
+      // blockCheckAuthRef.current = false;
+      return { success: response.data.success, message: response.data.message };
+
     } catch (error: any) {
       const message = error.response?.data?.message || '이메일 인증 중 오류가 발생했습니다.';
-      setAuthState(prev => ({ ...prev, isLoading: false, error: message }));
-      blockCheckAuthRef.current = false;
-      return false;
+      setAuthState(prev => ({ 
+        ...prev, 
+        // isLoading: false, // finally에서 처리
+        error: message 
+      }));
+      // blockCheckAuthRef.current = false;
+      return { success: false, message };
+    } finally {
+        setIsLoading(false);
     }
-  }, []);
+  }, [setIsLoading]); // setIsLoading을 의존성 배열에 추가
 
-  const resendVerificationEmail = useCallback(async (email: string): Promise<boolean> => {
+  const resendVerificationEmail = useCallback(async (email: string): Promise<{ success: boolean; message?: string }> => {
+    setIsLoading(true);
+    setAuthState(prev => ({ ...prev, error: null }));
     try {
-      setAuthState(prev => ({ ...prev, error: null }));
-      const response = await api.post<{ success: boolean }>('/auth/resend-verification', { email });
-      return response.data.success;
+      const response = await api.post<{ success: boolean; message?: string }>('/auth/resend-verification', { email });
+      setAuthState(prev => ({ 
+        ...prev, 
+        // isLoading: false, // finally에서 처리
+        error: response.data.success ? null : (response.data.message || '인증 이메일 재발송에 실패했습니다.') 
+      }));
+      return { success: response.data.success, message: response.data.message };
     } catch (error: any) {
       const message = error.response?.data?.message || '인증 이메일 재발송 중 오류가 발생했습니다.';
-      setAuthState(prev => ({ ...prev, error: message }));
-      throw new Error(message);
+      setAuthState(prev => ({ 
+        ...prev, 
+        // isLoading: false, // finally에서 처리
+        error: message 
+      }));
+      return { success: false, message };
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
+  }, [setIsLoading]); // setIsLoading을 의존성 배열에 추가
 
   const completeKakaoSignup = useCallback(async (profileData: { kakaoId: string; email: string; nickname?: string; profileImage?: string; }) => {
     try {

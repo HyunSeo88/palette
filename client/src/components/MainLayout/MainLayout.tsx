@@ -253,25 +253,25 @@ const MainLayout: React.FC = () => {
                     </Typography>
                   </Box>
                   <Divider />
-                  <MenuItem onClick={() => navigate('/mypage')}>
+                  <MenuItem onClick={() => user?.nickname && navigate(`/profile/${user.nickname}`)}>
                     <ListItemIcon>
                       <UserIcon size={18} />
                     </ListItemIcon>
                     <ListItemText>프로필</ListItemText>
                   </MenuItem>
-                  <MenuItem onClick={() => navigate('/mypage/posts')}>
+                  <MenuItem onClick={() => user?.nickname && navigate(`/profile/${user.nickname}`)}>
                     <ListItemIcon>
                       <CameraIcon size={18} />
                     </ListItemIcon>
-                    <ListItemText>내 게시물</ListItemText>
+                    <ListItemText>게시물</ListItemText>
                   </MenuItem>
-                  <MenuItem onClick={() => navigate('/mypage/likes')}>
+                  <MenuItem onClick={() => user?.nickname && navigate(`/profile/${user.nickname}`)}>
                     <ListItemIcon>
                       <HeartIcon size={18} />
                     </ListItemIcon>
                     <ListItemText>좋아요</ListItemText>
                   </MenuItem>
-                  <MenuItem onClick={() => navigate('/mypage/comments')}>
+                  <MenuItem onClick={() => user?.nickname && navigate(`/profile/${user.nickname}`)}>
                     <ListItemIcon>
                       <MessageIcon size={18} />
                     </ListItemIcon>

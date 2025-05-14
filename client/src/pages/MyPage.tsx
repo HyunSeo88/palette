@@ -7,6 +7,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import PersonIcon from '@mui/icons-material/Person';
 import EditIcon from '@mui/icons-material/Edit';
 import LockResetIcon from '@mui/icons-material/LockReset';
+import PageviewIcon from '@mui/icons-material/Pageview';
 import BackButton from '../components/common/BackButton';
 
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -77,6 +78,12 @@ const MyPage: React.FC = () => {
     );
   }
 
+  const handleViewProfile = () => {
+    if (user.nickname) {
+      navigate(`/profile/${user.nickname}`);
+    }
+  };
+
   return (
     <StyledContainer maxWidth="sm">
       <StyledPaper>
@@ -114,6 +121,15 @@ const MyPage: React.FC = () => {
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, width: '100%', maxWidth: '300px' }}>
+          <ActionButton
+            variant="contained"
+            color="primary"
+            startIcon={<PageviewIcon />}
+            onClick={handleViewProfile}
+            disabled={!user.nickname}
+          >
+            내 프로필 보기
+          </ActionButton>
           <ActionButton
             variant="outlined"
             color="primary"
