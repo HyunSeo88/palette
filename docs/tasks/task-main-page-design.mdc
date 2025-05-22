@@ -1,0 +1,94 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Task: Implement New Main Page Design
+
+## 1. Description
+Replicate the provided HTML/CSS/JS design for the main application page. This includes:
+- Section-based full-page scrolling with visual indicators (navigation dots).
+- A slide-in navigation menu accessible from the header.
+- A login modal triggered from the header.
+- Dynamic content sections for "Hot Posts", "BEST OOTD", and "Weekly Poll".
+
+The implementation must integrate seamlessly with the existing React (TypeScript, MUI, Zustand, React Router) frontend and the Node.js/Express backend. All project guidelines, coding standards, and documentation practices must be strictly followed.
+
+## 2. Scope of Work
+
+### Frontend (Client-side: `client/` directory)
+1.  **Main Page Component (`client/src/pages/MainPage.tsx` or similar):**
+    *   Create a new React component to house the main page's section-based layout.
+    *   Implement the five distinct sections: About Us, Hot Posts, BEST OOTD, Weekly Poll, Event/Discount.
+    *   Translate the HTML structure of each section into React and MUI components.
+2.  **Styling:**
+    *   Convert all CSS styles (including Tailwind CSS classes and custom styles from the `<style>` block) to Material-UI's styling solution (e.g., `sx` prop, `styled()` API).
+    *   Ensure styles are responsive and match the visual appearance of the provided design across different screen sizes (desktop, tablet, mobile).
+    *   Replicate background color changes for active sections.
+3.  **JavaScript Logic & Interactivity:**
+    *   **Section Navigation:**
+        *   Implement smooth scrolling between sections.
+        *   Create and manage navigation dots that indicate the active section and allow navigation.
+        *   Implement auto-scrolling functionality with a reset on manual interaction.
+    *   **Slide-in Menu:** (Likely part of `MainLayout.tsx` or a shared header component)
+        *   Ensure the menu toggle button in the header controls the visibility of the slide-in menu and overlay.
+        *   Implement submenu toggle functionality within the slide-in menu.
+        *   Menu items should link to appropriate routes using React Router.
+    *   **Login Modal:** (Likely part of `MainLayout.tsx` or a shared header/auth component)
+        *   The profile icon in the header should open the login modal.
+        *   Implement modal open/close functionality, including overlay interaction.
+        *   The login form submission should integrate with the existing authentication context/service (`AuthContext.tsx`, `auth.service.ts`) and call the backend login API (`/api/auth/login`).
+4.  **API Integration & Dynamic Content:**
+    *   **Hot Posts:** Fetch and display data from `/api/posts` (or a similar endpoint, filtered for "hot" posts) using existing API services.
+    *   **BEST OOTD:** Fetch and display data for the "Best OOTD" section, likely from `/api/posts?postType=ootd` and sorted/filtered for the top one.
+    *   **Weekly Poll:** Fetch and display data for the "Weekly Poll" section. This might involve a new API endpoint (e.g., `/api/polls/weekly-best`) or using existing poll APIs.
+    *   Utilize `axios` for API calls and manage state with component state or Zustand as appropriate.
+    *   Display placeholder content gracefully if API data is loading or unavailable.
+5.  **Component Structure:**
+    *   Break down the page into smaller, reusable components where sensible (e.g., `Section.tsx`, `ContentCard.tsx`, `PollCard.tsx`).
+    *   Adhere to the project's existing component organization and naming conventions.
+6.  **Integration with Existing Layout:**
+    *   The new `MainPage.tsx` should be integrated into the main application routing (`App.tsx`) and work correctly within the existing `MainLayout.tsx` (or equivalent) which provides the header and potentially the slide-in menu structure.
+
+### Backend (Server-side: `server/` directory)
+*   Minor adjustments or new specific API endpoints might be needed if existing ones don't perfectly fit the data requirements for "Hot Posts", "BEST OOTD", or "Weekly Poll" (e.g., a specific query for "best" OOTD or "hottest" posts). This will be evaluated during frontend implementation.
+
+## 3. Acceptance Criteria
+1.  **Visual Fidelity:** The implemented main page is visually identical or negligibly different from the provided HTML design across common browsers and screen sizes.
+2.  **Functional Completeness:**
+    *   All sections scroll correctly, and navigation dots function as specified.
+    *   Auto-scrolling works and resets on manual navigation.
+    *   The slide-in menu opens/closes, submenus expand/collapse, and links navigate correctly.
+    *   The login modal opens/closes, and the login form successfully authenticates with the backend.
+    *   "Hot Posts", "BEST OOTD", and "Weekly Poll" sections display dynamic data fetched from the backend (or well-defined mock data if backend endpoints are pending, with a clear plan for integration).
+3.  **Code Quality & Standards:**
+    *   Code is written in TypeScript and uses React functional components with hooks.
+    *   MUI components and styling conventions are used appropriately.
+    *   Code adheres to the project's ESLint and Prettier configurations.
+    *   The implementation follows the "Document First" and "Step-by-step Approval" principles.
+    *   No unnecessary code duplication (DRY).
+    *   Code is modular and maintainable.
+4.  **Responsiveness:** The page is fully responsive and looks good on desktop, tablet, and mobile devices, matching the responsive behavior of the original design.
+5.  **Integration:**
+    *   The new page is correctly routed and integrated within the existing application structure.
+    *   Frontend and backend integration for data fetching and authentication is functional.
+6.  **No Regressions:** Implementation does not break any existing application functionality.
+7.  **Documentation:**
+    *   `docs/directory-structure.md` is updated if any significant changes to file/folder structure are made.
+    *   `docs/tech-stack.md` is updated if any new libraries/technologies are introduced (effort will be made to use existing stack).
+
+## 4. Technology Stack to be Used
+*   **Frontend:** React, TypeScript, Material-UI (MUI), Zustand, React Router, Axios, Zod, react-hook-form.
+*   **Styling:** MUI's `sx` prop or `styled()` API.
+*   **Backend:** Node.js, Express.js, MongoDB, Mongoose (for any necessary API adjustments).
+
+## 5. Assumptions
+*   An existing `MainLayout.tsx` (or similar) component provides the main header and structure for the slide-in menu.
+*   Existing API services (`post.service.ts`, `auth.service.ts`, etc.) can be leveraged or extended.
+*   Backend APIs for fetching posts and polls are largely in place as per `docs/api-guide.md`.
+
+## 6. Potential Challenges
+*   Accurately translating Tailwind CSS utility classes and custom CSS to MUI's styling system while maintaining visual fidelity.
+*   Managing the state and interactions for the various dynamic elements (scrolling sections, menu, modal) in a clean React-idiomatic way.
+*   Ensuring smooth data flow and integration between the new UI components and existing backend services/state management.
+
