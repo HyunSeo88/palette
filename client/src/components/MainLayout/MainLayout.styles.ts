@@ -16,11 +16,12 @@ const STYLE_CONSTANTS = {
   PANEL_WIDTH: '280px',
   BREAKPOINT_MOBILE: '600px',
   COLORS: {
-    PRIMARY: '#2D3748',
+    PRIMARY: '#1976d2', // MUI primary blue
     BORDER: 'rgba(0,0,0,0.1)',
     SCROLLBAR_TRACK: '#f1f1f1',
     SCROLLBAR_THUMB: '#888',
     WHITE: '#fff',
+    LIGHT_BG: '#F0F8FF', // Light blue background matching theme.ts
   },
   SPACING: {
     XS: '8px',
@@ -29,8 +30,9 @@ const STYLE_CONSTANTS = {
     LG: '48px',
   },
   SHADOWS: {
-    HEADER: '0 2px 4px rgba(0,0,0,0.1)',
-    CONTENT: '0 4px 12px rgba(0,0,0,0.1)',
+    HEADER: '0 2px 8px rgba(0,0,0,0.05)',
+    CONTENT: '0 4px 12px rgba(0,0,0,0.05)',
+    CARD: '0 4px 12px rgba(0, 0, 0, 0.05)', // Matches Card shadow from theme.ts
   },
 } as const;
 
@@ -70,6 +72,7 @@ export const LayoutContainer = styled(Box)({
   flexDirection: 'column',
   height: '100vh',
   overflow: 'hidden',
+  backgroundColor: STYLE_CONSTANTS.COLORS.LIGHT_BG, // Use the light blue background from theme.ts
 });
 
 export const TopFixedArea = styled(Box)(({ theme }) => ({
@@ -78,8 +81,9 @@ export const TopFixedArea = styled(Box)(({ theme }) => ({
   left: 0,
   right: 0,
   zIndex: 1000,
-  backgroundColor: theme.palette.background.paper,
-  boxShadow: theme.shadows[1],
+  backgroundColor: theme.palette.background.paper, // White paper background
+  boxShadow: STYLE_CONSTANTS.SHADOWS.HEADER,
+  backdropFilter: 'blur(10px)', // Glass effect
 }));
 
 export const Header = styled(Box)({
@@ -95,7 +99,7 @@ export const Logo = styled(Box)({
   fontSize: '24px',
   fontWeight: 600,
   cursor: 'pointer',
-  color: '#2D3748',
+  color: STYLE_CONSTANTS.COLORS.PRIMARY, // Using primary color
 });
 
 export const MainContent = styled(Box)({
@@ -107,12 +111,13 @@ export const MainContent = styled(Box)({
 export const LeftPanel = styled(Box)<LeftPanelProps>(({ open, theme }) => ({
   width: STYLE_CONSTANTS.PANEL_WIDTH,
   flexShrink: 0,
-  backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900],
+  backgroundColor: theme.palette.background.paper, // White paper background
   borderRight: `1px solid ${theme.palette.divider}`,
   padding: STYLE_CONSTANTS.SPACING.SM,
   display: 'flex',
   flexDirection: 'column',
-  transition: 'transform 0.3s ease',
+  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+  boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.03)', // Subtle shadow on the right edge
   [`@media (max-width: ${theme.breakpoints.values.sm}px)`]: {
     position: 'fixed',
     top: STYLE_CONSTANTS.HEADER_HEIGHT,
@@ -130,7 +135,7 @@ export const MenuItem = styled(Box)<MenuItemProps>(({ theme, isactive }) => ({
   padding: theme.spacing(1.5, 2),
   cursor: 'pointer',
   borderRadius: '12px',
-  transition: 'background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+  transition: 'background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.2s ease',
   marginBottom: theme.spacing(1),
   color: theme.palette.text.secondary,
   fontWeight: 500,
@@ -141,15 +146,16 @@ export const MenuItem = styled(Box)<MenuItemProps>(({ theme, isactive }) => ({
   },
 
   '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.50),
-    color: theme.palette.text.primary,
+    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+    color: theme.palette.primary.main,
+    transform: 'translateX(4px)', // Subtle movement on hover
   },
 
   ...(isactive === 'true' && {
-    backgroundColor: theme.palette.common.white,
-    boxShadow: theme.shadows[2],
+    backgroundColor: alpha(theme.palette.primary.main, 0.1),
     color: theme.palette.primary.main,
     fontWeight: 600,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)', // Subtle shadow for active items
   }),
 }));
 
@@ -180,7 +186,7 @@ export const RightPanel = styled(Box)(({ theme }) => ({
   scrollBehavior: 'smooth',
   ...scrollbarStyle,
   padding: STYLE_CONSTANTS.SPACING.MD,
-  backgroundColor: alpha(theme.palette.primary.main, 0.03),
+  backgroundColor: alpha(theme.palette.background.default, 0.5), // Lighter than the LayoutContainer background
 }));
 
 export const Section = styled(Box)({

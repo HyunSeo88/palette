@@ -20,6 +20,8 @@ This document outlines the primary technologies, frameworks, libraries, and tool
 *   **State Management**: Zustand
 *   **API Client**: Axios (assumed, standard choice - can be confirmed/updated)
 *   **Form Validation**: Zod
+*   **Date Utility**: date-fns (for date formatting and manipulation)
+*   **Form Management**: react-hook-form (for building and managing forms)
 *   **Social Login SDKs**:
     *   Google Sign-In for Websites (Google Identity Services)
     *   Kakao JavaScript SDK

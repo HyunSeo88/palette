@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { 
   Box, Typography, IconButton, Avatar, Tooltip, Button, Menu, MenuItem as MuiMenuItem, ListItemIcon, ListItemText, Divider, 
-  TextField, InputAdornment, Card, CardMedia, CardContent, Grid
+  TextField, InputAdornment, Card, CardMedia, CardContent, Grid, CardHeader, CardActions
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -21,7 +21,9 @@ import {
   Camera as CameraIcon,
   Search as SearchIcon,
   Home as HomeIcon,
-  Bookmark as BookmarkIcon
+  Bookmark as BookmarkIcon,
+  Star as StarIcon,
+  Grid as GridIcon
 } from 'react-feather';
 import {
   LayoutContainer,
@@ -36,51 +38,62 @@ import {
   HeaderIcons,
 } from './MainLayout.styles';
 import { getSectionColors, SectionColorKey, COMMON_STYLES } from '../../theme';
-import { MENU_ITEMS, AVATAR_SIZE, SectionId, MenuItem as MenuItemTypeDefinition } from './MainLayout.types.tsx';
+import { MENU_ITEMS, AVATAR_SIZE, SectionId, MenuItem as MenuItemTypeDefinition, IPost } from './MainLayout.types';
 import useScrollSpy from '../../hooks/useScrollSpy';
 import { useTheme, alpha } from '@mui/material/styles';
+import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import CommentIcon from '@mui/icons-material/Comment';
+import ShareIcon from '@mui/icons-material/Share';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
-// Style constants from the user's example, adapt to MUI
-const cardImageHeight = '224px'; // h-56
-const popularImageHeight = '192px'; // h-48
+// Style constants
+// const cardImageHeight = '224px'; // Removed as it's no longer used by the new OOTD card design
+const popularImageHeight = '192px'; // Retained for the Popular Posts section
 
-// Mock data from user's example
-const ootdItems = [
-  { id: 1, src: '/images/ootd1.jpg', title: 'Beige blazer, denim, sneakers', likes: 132, saves: 18 },
-  { id: 2, src: '/images/ootd2.jpg', title: 'Green top and wide-leg pants', likes: 150, saves: 12 },
-  { id: 3, src: '/images/ootd3.jpg', title: 'Puffer vest and cap', likes: 87, saves: 7 },
-  { id: 4, src: '/images/ootd4.jpg', title: 'Classic Black Dress & Red Accent', likes: 205, saves: 30 },
-];
+// Mock data - ootdItems removed, popularItems set to empty for now
+// const ootdItems = [
+//   { id: 1, src: '/images/ootd1.jpg', title: 'Beige blazer, denim, sneakers', likes: 132, saves: 18 },
+//   { id: 2, src: '/images/ootd2.jpg', title: 'Green top and wide-leg pants', likes: 150, saves: 12 },
+//   { id: 3, src: '/images/ootd3.jpg', title: 'Puffer vest and cap', likes: 87, saves: 7 },
+//   { id: 4, src: '/images/ootd4.jpg', title: 'Classic Black Dress & Red Accent', likes: 205, saves: 30 },
+// ];
 
-const popularItems = ootdItems.slice(0, 4); // Show 4 popular items for better grid fill
+const popularItems: any[] = []; // Set to empty. Popular Posts section will show "no posts" message.
+                                // TODO: Integrate API for Popular Posts section later.
 
 const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(null);
   const rightPanelRef = useRef<HTMLDivElement | null>(null);
   const theme = useTheme();
 
-  // Default active section to 'home'
-  const [currentActiveSection, setCurrentActiveSection] = useState<SectionId>('home');
+  // Default active section to 'value'
+  const [activeSection, setActiveSection] = useState<SectionId>('value');
 
   const { sectionRefs, activeSection: scrollSpyActiveSection } = useScrollSpy({
-    sectionIds: MENU_ITEMS.filter(item => item.id !== 'home').map(item => item.id),
+    sectionIds: MENU_ITEMS.filter(item => item.id !== 'value').map(item => item.id),
   });
   
   useEffect(() => {
     if (scrollSpyActiveSection && MENU_ITEMS.some(item => item.id === scrollSpyActiveSection)) {
-      setCurrentActiveSection(scrollSpyActiveSection as SectionId);
+      if (activeSection !== scrollSpyActiveSection) {
+        setActiveSection(scrollSpyActiveSection as SectionId);
+      }
     } 
-  }, [scrollSpyActiveSection]);
+  }, [scrollSpyActiveSection, activeSection]);
 
   const handleMenuClick = (menuId: SectionId): void => {
-    setCurrentActiveSection(menuId);
+    setActiveSection(menuId);
     setIsMobileMenuOpen(false);
     const headerHeight = parseFloat(theme.mixins.toolbar.minHeight as string) || 64;
 
-    if (menuId === 'home' && rightPanelRef.current) {
+    if (menuId === 'value' && rightPanelRef.current) {
       rightPanelRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       const element = sectionRefs.current[menuId];
@@ -93,98 +106,284 @@ const MainLayout: React.FC = () => {
     }
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
-  const handleMenuClose = () => setAnchorEl(null);
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchorEl(null);
+  };
+  
+  const handleGoToMyPage = () => {
+    navigate('/mypage');
+    handleUserMenuClose();
+  };
+
+  const handleGoToSettings = () => {
+    navigate('/settings');
+    handleUserMenuClose();
+  };
 
   const handleLogout = async () => {
     try {
       await logout();
-      handleMenuClose();
+      handleUserMenuClose();
       navigate('/');
-      setCurrentActiveSection('home'); 
+      setActiveSection('value');
     } catch (error) {
       console.error('로그아웃 실패:', error);
     }
   };
   
   // Helper to determine if a menu item is active
-  const isMenuItemActive = (menuId: SectionId) => currentActiveSection === menuId;
+  const isMenuItemActive = (menuId: SectionId) => activeSection === menuId;
 
-  // Define placeholder content for non-home sections
+  // State for OOTD posts
+  const [ootdPosts, setOotdPosts] = useState<IPost[]>([]); // Updated to IPost[]
+  const [ootdLoading, setOotdLoading] = useState<boolean>(true);
+  const [ootdError, setOotdError] = useState<string | null>(null);
+
+  const scrollSpyEnabled = activeSection === 'value';
+
+  // Effect to fetch OOTD posts
+  useEffect(() => {
+    const fetchOotdPosts = async () => {
+      setOotdLoading(true);
+      setOotdError(null);
+      try {
+        // Ensure your backend is running and accessible at this URL
+        // The port 5000 is an assumption. Change if your backend runs on a different port.
+        const response = await fetch('http://localhost:5000/api/posts?postType=ootd'); // Updated API endpoint
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setOotdPosts(data.posts || data || []); // Assuming posts are in data.posts or data directly
+      } catch (error: any) {
+        console.error("Failed to fetch OOTD posts:", error);
+        let displayError = 'OOTD 게시물을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.';
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          displayError = '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중이고 접근 가능한지, 또는 CORS 설정을 확인해주세요. (오류: Failed to fetch)';
+        } else if (error.message && error.message.startsWith('HTTP error! status:')) {
+          const statusMatch = error.message.match(/status: (\d+)/);
+          const status = statusMatch ? statusMatch[1] : '알 수 없음';
+          displayError = `OOTD 게시물을 불러오는데 실패했습니다. 서버 응답 상태: ${status}.`;
+        } else if (error.message) {
+          displayError = `오류가 발생했습니다: ${error.message}`;
+        }
+        setOotdError(displayError);
+      } finally {
+        setOotdLoading(false);
+      }
+    };
+
+    if (activeSection === 'value') { // Updated from 'home' to 'value'
+        fetchOotdPosts();
+    }
+  }, [activeSection]); // Re-fetch if activeSection changes to 'value'
+
+  // Define placeholder content for non-value sections
   const renderSectionContent = (sectionId: SectionId) => {
-    if (sectionId === 'home') {
+    if (sectionId === 'value') {
+      const secondaryNavItems = ['Trending', 'Collections', 'Categories', 'Topics', 'Files', 'Groups', 'People'];
+      // For now, let's assume the first OOTD image is the main display image and caption is the title.
+
       return (
-        <Box> 
-          <Box component="section" sx={{ pb: { xs: 3, sm: 4, md: 6 } }}>
-            <Typography variant="h5" component="h2" sx={{ mb: {xs: 2, sm: 3}, fontWeight: 'bold', color: 'text.primary' }}>
-              OOTD
-            </Typography>
-            <Box sx={{ display: 'flex', gap: {xs: 1.5, sm: 2, md: 2.5}, overflowX: 'auto', py: 1, 
-                       scrollbarWidth: 'thin', '&::-webkit-scrollbar': { height: '8px'}, 
-                       '&::-webkit-scrollbar-thumb': { bgcolor: alpha(theme.palette.text.disabled, 0.5), borderRadius: '4px'},
-                       '&::-webkit-scrollbar-track': { bgcolor: alpha(theme.palette.text.disabled, 0.1), borderRadius: '4px'}
-            }}>
-              {ootdItems.map((item) => (
-                <Card key={item.id} sx={{ minWidth: {xs: 180, sm: 200, md: 220}, flexShrink: 0, borderRadius: '12px', boxShadow: theme.shadows[2] }}>
-                  <CardMedia
-                    component="img"
-                    sx={{ height: cardImageHeight, width: '100%', objectFit: 'cover' }}
-                    image={item.src || `https://source.unsplash.com/random/220x${cardImageHeight.replace('px','')}?fashion&sig=${item.id}`}
-                    alt={item.title}
-                  />
-                  <CardContent sx={{ p: 2 }}>
-                    <Typography variant="body2" component="p" sx={{ fontWeight: 500, color: 'text.primary', mb: 1.5, height: '3.6em', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {item.title}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: 'text.secondary', fontSize: '0.875rem' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <HeartIcon size={16} style={{ fill: theme.palette.error.main, color: theme.palette.error.main }} /> 
-                        {item.likes}
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <BookmarkIcon size={16} /> 
-                        {item.saves}
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
-            </Box>
+        <Box sx={{ px: { xs: 1, sm: 2, md: 3 } }}> {/* Add some horizontal padding to the overall section content */}
+          {/* Secondary Navigation Bar */}
+          <Box 
+            sx={{ 
+              mb: 4, 
+              display: 'flex', 
+              gap: 1.5, 
+              flexWrap: 'wrap',
+              pb: 2,
+              borderBottom: 1,
+              borderColor: 'divider'
+            }}
+          >
+            {secondaryNavItems.map(item => (
+              <Button 
+                key={item} 
+                variant={item === 'Trending' ? 'contained' : 'outlined'} // Example: Make 'Trending' active by default
+                size="small" 
+                sx={{ 
+                  borderRadius: '20px', 
+                  textTransform: 'none',
+                  fontWeight: item === 'Trending' ? 600 : 500,
+                  px: 2.5,
+                  py: 0.5
+                }}
+              >
+                {item}
+              </Button>
+            ))}
+            {/* TODO: Add Sort dropdown and view toggle icons here based on image */}
           </Box>
 
-          <Box component="section" sx={{ pb: { xs: 3, sm: 4, md: 6 } }}>
-            <Typography variant="h5" component="h2" sx={{ mb: {xs: 2, sm: 3}, fontWeight: 'bold', color: 'text.primary' }}>
-              Popular Posts
-            </Typography>
-            <Grid container spacing={{xs: 1.5, sm: 2, md: 2.5}}>
-              {popularItems.map((item) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={item.id + '-popular'}> {/* Ensure unique key */}
-                  <Card sx={{ borderRadius: '12px', overflow: 'hidden', boxShadow: theme.shadows[2] }}>
-                    <CardMedia
-                      component="img"
-                      sx={{ height: popularImageHeight, width: '100%', objectFit: 'cover' }}
-                      image={item.src || `https://source.unsplash.com/random/300x${popularImageHeight.replace('px','')}?fashion&sig=${item.id + 100}`}
-                      alt={item.title}
-                    />
-                    <CardContent sx={{ p: 2 }}>
-                      <Typography variant="body2" component="p" sx={{ fontWeight: 500, color: 'text.primary', height: '3.6em', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                        {item.title}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
+          {/* Content Grid - OOTD Posts with new card design */}
+          <Box component="section" sx={{ pb: { xs: 4, sm: 5, md: 6 } }}>
+            {ootdLoading && <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}><CircularProgress /></Box>}
+            {ootdError && <Alert severity="error" sx={{ my: 3 }}>Error fetching OOTD posts: {ootdError}</Alert>}
+            {!ootdLoading && !ootdError && (
+              <Grid container spacing={3}>
+                {ootdPosts.length > 0 ? ootdPosts.map((post) => (
+                  <Grid item xs={12} sm={6} md={4} key={post._id}>
+                    <Card 
+                      sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        height: '100%', 
+                        borderRadius: 4, // Slightly more rounded corners like the image
+                        boxShadow: '0 8px 16px rgba(0,0,0,0.08)', // Softer, more diffused shadow
+                        overflow: 'visible', // Needed if rating badge overlaps
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-5px)',
+                          boxShadow: '0 12px 24px rgba(0,0,0,0.12)',
+                        }
+                      }}
+                    >
+                      {/* User Info and Rating (using likes) at the top of the image */}
+                      {post.images && post.images.length > 0 && (
+                        <Box sx={{ position: 'relative' }}>
+                          <CardMedia
+                            component="img"
+                            sx={{ 
+                              height: 280, // Adjust height as needed
+                              objectFit: 'cover',
+                              borderRadius: '16px 16px 0 0', // Rounded top corners for the image
+                            }}
+                            image={post.images[0]}
+                            alt={post.content || 'OOTD image'}
+                          />
+                          <Box sx={{
+                            position: 'absolute',
+                            top: 12,
+                            left: 12,
+                            display: 'flex',
+                            alignItems: 'center',
+                            bgcolor: alpha(theme.palette.common.black, 0.5),
+                            color: 'white',
+                            px: 1.5, // Increased padding for better visual
+                            py: 0.5,  // Increased padding
+                            borderRadius: 2, // Rounded corners for the user info badge
+                          }}>
+                            {post.author?.profileImageUrl && (
+                              <Avatar 
+                                src={post.author.profileImageUrl} 
+                                alt={post.author.username} 
+                                sx={{ width: 24, height: 24, mr: 0.75 }} // Slightly smaller avatar
+                              />
+                            )}
+                            <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                              {post.author?.username || 'User'}
+                            </Typography>
+                          </Box>
+                          {/* Rating Badge (using likes count) */}
+                          <Box sx={{
+                            position: 'absolute',
+                            top: 12,
+                            right: 12,
+                            display: 'flex',
+                            alignItems: 'center',
+                            bgcolor: alpha(theme.palette.warning.light, 0.85), // Using a warning/star color
+                            color: theme.palette.warning.contrastText,
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: '12px', // Pill shape
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                          }}>
+                            <StarIcon size={14} style={{ marginRight: 4, fill: theme.palette.warning.contrastText }}/>
+                            <Typography variant="caption" sx={{ fontWeight: 'bold', lineHeight: '1.2' }}> 
+                              {post.likes?.length || 0}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      )}
+                      <CardContent sx={{ pt: 2, pb: 1, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                        <Typography 
+                          variant="subtitle1" 
+                          component="div" 
+                          gutterBottom 
+                          sx={{ 
+                            fontWeight: 600, 
+                            lineHeight: 1.3,
+                            color: theme.palette.text.primary,
+                            // Truncate text to 2 lines
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            minHeight: 'calc(1.3em * 2)' // Ensure space for 2 lines
+                          }}
+                        >
+                          {post.content || 'No caption'}
+                        </Typography>
+                        {/* Placeholder for tags or other info if needed */}
+                        {/* {post.tags && post.tags.length > 0 && (
+                          <Typography variant="caption" color="text.secondary" sx={{ mt: 'auto', pt:1 }}>
+                            Tags: {post.tags.join(', ')}
+                          </Typography>
+                        )} */}
+                      </CardContent>
+                      <CardActions disableSpacing sx={{ pt: 0, pb: 1.5, px: 1.5, mt: 'auto', justifyContent: 'space-around' }}>
+                        <Tooltip title="Like">
+                          <IconButton aria-label="add to favorites" size="small" sx={{ '&:hover': { color: theme.palette.error.main }}}>
+                            <HeartIcon size={18} /> 
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Comment">
+                          <IconButton aria-label="comment" size="small" sx={{ '&:hover': { color: theme.palette.primary.main }}}>
+                            <MessageIcon size={18} />
+                            <Typography variant="caption" sx={{ ml: 0.5 }}>{post.commentsCount || 0}</Typography>
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Share">
+                          <IconButton aria-label="share" size="small" sx={{ '&:hover': { color: theme.palette.info.main }}}>
+                            <ShareIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Bookmark">
+                          <IconButton aria-label="bookmark" size="small" sx={{ '&:hover': { color: theme.palette.secondary.main }}}>
+                            <BookmarkIcon size={18} />
+                          </IconButton>
+                        </Tooltip>
+                      </CardActions>
+                    </Card>
+                  </Grid>
+                )) : (
+                  <Grid item xs={12}>
+                    <Box 
+                      sx={{ 
+                        textAlign: 'center', 
+                        my: 4, 
+                        p: 4, 
+                        bgcolor: 'background.paper', 
+                        borderRadius: 2,
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+                      }}
+                    >
+                      <Typography sx={{ color: 'text.secondary' }}>아직 OOTD 게시물이 없습니다.</Typography>
+                    </Box>
+                  </Grid>
+                )}
+              </Grid>
+            )}
           </Box>
+
+          {/* Popular Posts section is removed for now as per new design focusing on Value section with OOTD items */}
+          {/* <Box component="section" sx={{ pb: { xs: 4, sm: 5, md: 6 } }}> ... </Box> */}
         </Box>
       );
     }
-    // Placeholder for other sections
+    // Placeholder for other sections (ootd, community, events)
     return (
       <Box 
-        id={sectionId} // For scroll spy target
+        id={sectionId} 
         ref={(el: HTMLDivElement | null) => { if (sectionRefs.current) sectionRefs.current[sectionId] = el; }} 
-        sx={{ py: 3, minHeight: 'calc(100vh - 120px)' /* Ensure it takes some space for scroll spy */ }}
+        sx={{ py: 3, minHeight: 'calc(100vh - 120px)', px: { xs: 1, sm: 2, md: 3 } }}
       >
         <Typography variant="h4">{(MENU_ITEMS.find(m=>m.id === sectionId) as MenuItemTypeDefinition)?.label || sectionId} (Content TBD)</Typography>
       </Box>
@@ -193,161 +392,210 @@ const MainLayout: React.FC = () => {
 
   return (
     <LayoutContainer sx={{ bgcolor: theme.palette.mode === 'light' ? theme.palette.grey[50] : theme.palette.grey[900] }}>
-      {/* Sidebar (LeftPanel) */}
-      <LeftPanel open={isMobileMenuOpen} sx={{bgcolor: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[800] }}>
-        <Box sx={{ p: 1, display: { xs: 'flex', sm: 'none' }, justifyContent: 'flex-end' }}>
-          <IconButton onClick={() => setIsMobileMenuOpen(false)}><CloseIcon /></IconButton>
-        </Box>
-        
-        {/* Logo inside Sidebar - from new design */}
-        <Box sx={{ p: {xs: 1, sm: 2}, pt: {xs: 0, sm: 2}, mb: {xs: 1, sm: 3} }}>
-          <Logo onClick={() => handleMenuClick('home')} sx={{ cursor:'pointer' }}>
-            <DropletIcon />
-            <Typography variant="h4" component="span" sx={{ fontWeight: 'extrabold', color: 'text.primary', ml: 1 }}>
-              Palette
-            </Typography>
-          </Logo>
-        </Box>
+      {/* Top bar (Header) - Now a direct child of LayoutContainer */}
+      <TopFixedArea 
+        sx={{ 
+          boxShadow: theme.shadows[1], 
+          zIndex: 1100,
+          bgcolor: alpha(theme.palette.background.paper, 0.85),
+          backdropFilter: 'blur(8px)',
+          height: theme.mixins.toolbar.minHeight
+        }}
+      >
+        <Header sx={{ px: {xs:1, sm:2, md:3}, height: '100%' }}>
+          {/* Hamburger for mobile */}
+          <IconButton 
+            sx={{ display: { sm: 'none' }, mr: 1, color: 'text.primary' }}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <MenuIcon />
+          </IconButton>
 
-        <Box component="nav" sx={{ flexGrow: 1, px: {xs:0.5, sm:1} }}>
-          {MENU_ITEMS.map((item) => (
-            <MenuItemComponent
-              key={item.id}
-              isactive={isMenuItemActive(item.id).toString()} // Pass as string 'true'/'false'
-              onClick={() => handleMenuClick(item.id)}
-            >
-              {item.icon} 
-              <Typography variant="body1" component="span" sx={{ fontWeight: 'inherit', color: 'inherit', ml: 0.5 }}>{item.label}</Typography>
-            </MenuItemComponent>
-          ))}
-        </Box>
-      </LeftPanel>
+          {/* Search Bar */}
+          <Box sx={{ flexGrow: 1, maxWidth: {xs: '100%', sm:'50%', md: '40%'}, minWidth: '180px' }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon size={20} style={{ color: theme.palette.text.secondary }}/>
+                  </InputAdornment>
+                ),
+                sx: { 
+                  borderRadius: '12px',
+                  bgcolor: alpha(theme.palette.common.black, 0.03),
+                  transition: 'all 0.3s ease',
+                  '&:hover': { bgcolor: alpha(theme.palette.common.black, 0.05) },
+                  '&.Mui-focused': { 
+                    bgcolor: theme.palette.common.white, 
+                    boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.25)}`
+                  },
+                  '.MuiOutlinedInput-notchedOutline': { border: 'none' }
+                }
+              }}
+              size="small"
+            />
+          </Box>
 
-      {/* Main Area including Top Bar and Content */}
-      <Box component={MainContent} sx={{flexDirection: 'column', flexGrow: 1, overflow: 'hidden', mt:0, pt: `${theme.mixins.toolbar.minHeight}px`, /* Offset for sticky header */ position: 'relative'}}>
-        {/* Top bar (Header) */}
-        <TopFixedArea sx={{ position: 'absolute', top:0, left:0, right:0, boxShadow: theme.shadows[1], zIndex: 1100, bgcolor: alpha(theme.palette.background.paper, 0.85), backdropFilter: 'blur(8px)' }}>
-          <Header sx={{ px: {xs:1, sm:2, md:3}, height: theme.mixins.toolbar.minHeight }}>
-            {/* Hamburger for mobile */}
-            <IconButton
-              sx={{ display: { sm: 'none' }, mr: 1, color: 'text.primary' }}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <MenuIcon />
-            </IconButton>
-
-            {/* Search Bar */}
-            <Box sx={{ flexGrow: 1, maxWidth: {xs: '100%', sm:'50%', md: '40%'}, minWidth: '180px' }}>
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder="Search"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon size={20} style={{ color: theme.palette.text.secondary }}/>
-                    </InputAdornment>
-                  ),
-                  sx: { 
-                    borderRadius: '12px',
-                    bgcolor: alpha(theme.palette.common.black, 0.05),
-                    transition: 'background-color 0.2s',
-                    '&:hover': { bgcolor: alpha(theme.palette.common.black, 0.08) },
-                    '&.Mui-focused': { bgcolor: theme.palette.common.white, boxShadow: `0 0 0 2px ${theme.palette.primary.light}` },
-                    '.MuiOutlinedInput-notchedOutline': { border: 'none' }
-                  }
-                }}
-                size="small"
-              />
-            </Box>
-
-            {/* Header Icons */}
-            <HeaderIcons sx={{ gap: {xs:0.5, sm:1, md:2} }}>
-              {!isAuthenticated ? (
-                <>
-                  <Button variant="outlined" size="small" onClick={() => navigate('/login')}>Login</Button>
-                  <Button variant="contained" size="small" onClick={() => navigate('/register')}>Sign Up</Button>
-                </>
-              ) : (
-                <>
-                  <Tooltip title="알림">
-                    <IconButton sx={{ color: 'text.primary' }}>
-                      <NotificationIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="마이페이지">
-                    <IconButton 
-                      onClick={handleMenuOpen}
-                      sx={{ 
-                        p: 0.5,
-                        '& .MuiAvatar-root': {
-                          width: AVATAR_SIZE.width,
-                          height: AVATAR_SIZE.height,
-                          border: `2px solid ${theme.palette.common.white}`
-                        }
-                      }}
-                    >
-                      <Avatar 
-                        src={user?.photoURL || undefined}
-                        alt={user?.displayName || '사용자'}
-                      />
-                    </IconButton>
-                  </Tooltip>
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleMenuClose}
-                    onClick={handleMenuClose}
-                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                    PaperProps={{
-                      elevation: 3,
-                      sx: {
-                        overflow: 'visible',
-                        filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))',
-                        mt: 1.5,
-                        minWidth: 220,
-                        borderRadius: '8px',
-                        '& .MuiMenuItem-root': {
-                          px: 2,
-                          py: 1,
-                          '& .MuiSvgIcon-root, & .feather': {
-                            mr: 1.5,
-                            fontSize: '1.25rem',
-                          },
-                        },
-                      },
+          {/* Header Icons */}
+          <HeaderIcons sx={{ gap: {xs:0.5, sm:1, md:2} }}>
+            {!isAuthenticated ? (
+              <>
+                <Tooltip title="로그인">
+                  <IconButton 
+                    onClick={() => navigate('/login')}
+                    sx={{ 
+                      color: 'primary.main',
+                      bgcolor: alpha(theme.palette.primary.main, 0.05),
+                      '&:hover': {
+                        bgcolor: alpha(theme.palette.primary.main, 0.1),
+                      }
                     }}
+                    size="small"
                   >
-                    <Box sx={{ px: 2, py: 1.5 }}>
-                      <Typography variant="subtitle1" noWrap>
-                        {user?.nickname || '사용자'}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {user?.email || '이메일 정보 없음'}
-                      </Typography>
-                    </Box>
-                    <Divider />
-                    <MuiMenuItem onClick={() => { navigate(`/profile/${user?.nickname}`); handleMenuClose(); }}>
-                      <UserIcon size={20} style={{ marginRight: theme.spacing(1.5)}} /> 프로필
-                    </MuiMenuItem>
-                    <MuiMenuItem onClick={() => { navigate('/settings'); handleMenuClose(); }}>
-                      <SettingsIcon size={20} style={{ marginRight: theme.spacing(1.5)}} /> 설정
-                    </MuiMenuItem>
-                    <Divider />
-                    <MuiMenuItem onClick={handleLogout}>
-                      <LogOutIcon size={20} style={{ marginRight: theme.spacing(1.5)}} /> 로그아웃
-                    </MuiMenuItem>
-                  </Menu>
-                </>
-              )}
-            </HeaderIcons>
-          </Header>
-        </TopFixedArea>
+                    <LogInIcon size={20} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="회원가입">
+                  <IconButton 
+                    onClick={() => navigate('/register')}
+                    sx={{ 
+                      color: 'primary.main',
+                      bgcolor: alpha(theme.palette.primary.main, 0.1),
+                      '&:hover': {
+                        bgcolor: alpha(theme.palette.primary.main, 0.15),
+                      }
+                    }}
+                    size="small"
+                  >
+                    <RegisterIcon size={20} />
+                  </IconButton>
+                </Tooltip>
+              </>
+            ) : (
+              <>
+                <Tooltip title="새 게시물 작성">
+                  <IconButton 
+                    onClick={() => navigate('/create-post')}
+                    sx={{ color: 'text.primary' }}
+                  >
+                    <EditIcon size={20}/>
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="알림">
+                  <IconButton sx={{ color: 'text.primary' }}>
+                    <NotificationIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={user?.nickname || 'User Profile'}>
+                  <IconButton onClick={handleUserMenuOpen} sx={{ p: 0, ml: 1.5 }}>
+                    <Avatar
+                      alt={user?.nickname || user?.email}
+                      src={user?.photoURL || user?.profilePicture || undefined}
+                      sx={{ width: AVATAR_SIZE, height: AVATAR_SIZE, bgcolor: 'primary.main' }}
+                    >
+                      {!(user?.photoURL || user?.profilePicture) && (user?.nickname?.[0] || user?.email?.[0])?.toUpperCase()}
+                    </Avatar>
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  id="user-menu"
+                  anchorEl={userMenuAnchorEl}
+                  open={Boolean(userMenuAnchorEl)}
+                  onClose={handleUserMenuClose}
+                  MenuListProps={{
+                    'aria-labelledby': 'user-avatar-button',
+                  }}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  sx={{ mt: 1 }}
+                >
+                  <MuiMenuItem onClick={handleGoToMyPage}>
+                    <ListItemIcon>
+                      <GridIcon size={20} />
+                    </ListItemIcon>
+                    <ListItemText>My Page</ListItemText>
+                  </MuiMenuItem>
+                  <MuiMenuItem onClick={handleGoToSettings}>
+                    <ListItemIcon>
+                      <SettingsIcon size={20} />
+                    </ListItemIcon>
+                    <ListItemText>Settings</ListItemText>
+                  </MuiMenuItem>
+                  <Divider />
+                  <MuiMenuItem onClick={handleLogout}>
+                    <ListItemIcon>
+                      <LogOutIcon size={20} />
+                    </ListItemIcon>
+                    <ListItemText>Logout</ListItemText>
+                  </MuiMenuItem>
+                </Menu>
+              </>
+            )}
+          </HeaderIcons>
+        </Header>
+      </TopFixedArea>
+
+      {/* New Box to contain LeftPanel and RightPanel in a row, below the header */}
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          flexDirection: 'row', 
+          flexGrow: 1,
+          width: '100%', 
+          pt: `${theme.mixins.toolbar.minHeight}px`,
+          overflow: 'hidden'
+        }}
+      >
+        {/* Sidebar (LeftPanel) */}
+        <LeftPanel 
+          open={isMobileMenuOpen} 
+          sx={{ 
+          }}
+        >
+          <Box sx={{ p: 1, display: { xs: 'flex', sm: 'none' }, justifyContent: 'flex-end' }}>
+            <IconButton onClick={() => setIsMobileMenuOpen(false)}><CloseIcon /></IconButton>
+          </Box>
+          
+          <Box sx={{ p: {xs: 1, sm: 2}, pt: {xs: 0, sm: 2}, mb: {xs: 1, sm: 3} }}>
+            <Logo onClick={() => handleMenuClick('value')} sx={{ cursor:'pointer' }}>
+              <DropletIcon />
+              <Typography variant="h4" component="span" sx={{ fontWeight: 'extrabold', color: 'text.primary', ml: 1 }}>
+              Palette
+              </Typography>
+            </Logo>
+          </Box>
+
+          <Box component="nav" sx={{ flexGrow: 1, px: {xs:0.5, sm:1} }}>
+            {MENU_ITEMS.map((item) => (
+              <MenuItemComponent
+                key={item.id}
+                isactive={isMenuItemActive(item.id).toString()}
+                onClick={() => handleMenuClick(item.id)}
+              >
+                {item.icon} 
+                <Typography variant="body1" component="span" sx={{ fontWeight: 'inherit', color: 'inherit', ml: 0.5 }}>{item.label}</Typography>
+              </MenuItemComponent>
+            ))}
+          </Box>
+        </LeftPanel>
 
         {/* Main Scrollable Content (RightPanel) */}
-        <RightPanel ref={rightPanelRef} sx={{ bgcolor: 'transparent', pt:0 /* Padding now on MainContent Box/offset by Header*/ }}>
-          {renderSectionContent(currentActiveSection)}
+        <RightPanel 
+          ref={rightPanelRef} 
+          sx={{ 
+            flexGrow: 1,
+          }}
+        >
+          {renderSectionContent(activeSection)}
         </RightPanel>
       </Box>
     </LayoutContainer>

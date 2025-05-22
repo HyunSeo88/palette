@@ -1,12 +1,12 @@
 import { Theme } from '@mui/material/styles';
-import { Home, Camera, Users, Star } from 'react-feather';
+import { Home, Camera, Users, Star, Grid as GridIcon } from 'react-feather';
 
 /** Available section identifiers for the main layout */
-export type SectionId = 'home' | 'ootd' | 'community' | 'events';
+export type SectionId = 'value' | 'ootd' | 'community' | 'events';
 
 /** Color mapping for sections using theme tokens */
 export const SECTION_COLORS = {
-  home: 'primary.main',
+  value: 'primary.main',
   ootd: 'secondary.light',
   community: 'info.main',
   voting: 'info.light',
@@ -36,10 +36,10 @@ export interface CommunityStats {
 /** Menu items configuration */
 export const MENU_ITEMS: MenuItem[] = [
   {
-    id: 'home',
-    label: 'Home',
-    description: '메인 페이지',
-    icon: <Home size={20} />,
+    id: 'value',
+    label: 'Value',
+    description: '밸류 컨텐츠',
+    icon: <GridIcon size={20} />,
   },
   {
     id: 'ootd',
@@ -78,4 +78,29 @@ export const INTERSECTION_OBSERVER_CONFIG = {
 export const AVATAR_SIZE = {
   width: 32,
   height: 32,
-} as const; 
+} as const;
+
+export interface IUserSummary {
+  _id: string;
+  username: string;
+  profileImageUrl?: string;
+}
+
+export interface IPost {
+  _id: string;
+  author: IUserSummary;
+  title?: string;
+  content: string;
+  images: string[];
+  tags?: string[];
+  postType: 'ootd' | 'fashion' | 'free';
+  likes: string[];
+  commentsCount: number;
+  views?: number;
+  createdAt: string;
+  updatedAt: string;
+  additionalFields?: {
+    style?: string;
+    season?: string;
+  };
+} 
