@@ -15,6 +15,7 @@ import SocialOnboardingPage from './pages/SocialOnboardingPage';
 import SocialEmailRequestPage from './pages/SocialEmailRequestPage';
 import CreatePostPage from './domains/post/pages/CreatePostPage';
 import MyPage from './domains/user/mypage/MyPage';
+import OotdPage from './pages/OotdPage';
 
 const App: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -27,6 +28,17 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<MainPage />} />
+            <Route path="ootd" element={<OotdPage />} />
+            <Route 
+              path="create-post" 
+              element={user ? <CreatePostPage /> : <Navigate to="/login" replace />}
+            />
+            <Route 
+              path="mypage" 
+              element={user ? <MyPage /> : <Navigate to="/login" replace />}
+            />
+            <Route path="profile/:userNickname" element={<ProfilePage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -34,16 +46,6 @@ const App: React.FC = () => {
           <Route path="/social-onboarding" element={<SocialOnboardingPage />} />
           <Route path="/social-email-request" element={<SocialEmailRequestPage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route 
-            path="/create-post" 
-            element={user ? <CreatePostPage /> : <Navigate to="/login" replace />}
-          />
-          <Route 
-            path="/mypage" 
-            element={user ? <MyPage /> : <Navigate to="/login" replace />}
-          />
-          <Route path="/profile/:userNickname" element={<ProfilePage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </ThemeProvider>
     </BrowserRouter>

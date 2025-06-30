@@ -3,3 +3,101 @@ description:
 globs:
 alwaysApply: false
 ---
+# Task: Backend API Development - Posts, Comments, and Authentication
+
+**Date Created:** $(date +%Y-%m-%d)
+**Status:** Implemented (Refinement Phase)
+
+## 1. Overview
+
+This document summarizes the development of core backend features for the Palette fashion community platform, including:
+- OOTD (Outfit Of The Day) posts (initial implementation, later superseded by general posts).
+- General Post CRUD operations.
+- Comment CRUD operations for Posts.
+- JWT-based authentication middleware.
+
+This work aligns with the project's goal to establish foundational backend services for user-generated content and interaction.
+
+## 2. Features Implemented
+
+### 2.1. OOTD Feature (Initial Phase - Superseded)
+
+*   **Purpose:** Allow users to share OOTD posts.
+*   **Model (`ootd.model.js` - now deleted):**
+    *   Fields: `user` (Ref: User), `images` (Array of String, required), `caption` (String), `tags` (Array of String), `likes` (Array of ObjectId, Ref: User), `commentsCount` (Number), `style` (String), `season` (String).
+    *   Timestamps and basic indexes were included.
+*   **Controller (`ootd.controller.js` - now deleted):**
+    *   CRUD operations: `createOotdPost`, `getOotdPosts` (with pagination and filtering), `getOotdPostById`, `updateOotdPost`, `deleteOotdPost`.
+    *   Interaction: `likeOotdPost`.
+*   **Routes (`ootd.routes.js` - now deleted):**
+    *   Endpoints: `POST /ootds`, `GET /ootds`, `GET /ootds/:ootdId`, `PUT /ootds/:ootdId`, `DELETE /ootds/:ootdId`, `POST /ootds/:ootdId/like`.
+*   **Note:** The OOTD specific functionality was later merged and expanded into the more generic 'Post' feature.
+
+### 2.2. General Post Feature
+
+*   **Purpose:** Provide a flexible system for various types of user posts (fashion, free talk, Q&A).
+*   **Model (`server/src/models/Post.model.js`):**
+    *   Key Fields: `user` (Ref: User), `postType` (Enum: 'fashion', 'free', 'qna', etc.), `title` (String), `content` (String), `images` (Array of String), `tags` (Array of String), `likes` (Array of ObjectId, Ref: User), `comments` (Array of ObjectId, Ref: Comment), `viewCount` (Number, default: 0), `isPinned` (Boolean, default: false), `status` (Enum: 'published', 'draft', 'deleted', default: 'published'), `additionalFields` (Mixed).
+    *   Indexes: Text index for search, compound indexes for querying.
+*   **Controller (`server/src/controllers/post.controller.js`):**
+    *   `createPost`: Creates a new post.
+    *   `getPosts`: Retrieves posts with pagination, filtering (by `postType`, `userId`, `tags`, `searchTerm` via text index), and sorting. Populates user details (`nickname`, `profileImage`, `email`).
+    *   `getPostById`: Retrieves a single post by ID, increments `viewCount`. Populates user and active comments (with nested user details).
+    *   `updatePost`: Updates a post (author or admin only).
+    *   `deletePost`: Soft deletes a post by changing `status` to 'deleted' (author or admin only).
+    *   `toggleLikePost`: Adds/removes a user's like from a post.
+*   **Routes (`server/src/routes/post.routes.js`):**
+    *   Base Path: `/api/posts`
+    *   Endpoints: `POST /`, `GET /`, `GET /:postId`, `PUT /:postId`, `DELETE /:postId`, `POST /:postId/like`.
+    *   All routes protected by `authMiddleware`.
+
+### 2.3. Comment Feature
+
+*   **Purpose:** Allow users to comment on posts, including nested replies.
+*   **Model (`server/src/models/Comment.model.js`):**
+    *   Key Fields: `post` (Ref: Post, required), `user` (Ref: User, required), `content` (String, required), `parentComment` (Ref: Comment, for replies), `likes` (Array of ObjectId, Ref: User), `isDeleted` (Boolean, default: false, for soft delete), `childrenCount` (Number, default: 0, for tracking replies).
+    *   Indexes: For `post`, `user`, `parentComment`.
+*   **Controller (`server/src/controllers/comment.controller.js`):**
+    *   `createComment`: Creates a new comment. Associates with a post, updates `Post.comments` array. If it's a reply, updates `parentComment.childrenCount`. Populates creating user's details.
+    *   `getCommentsByPostId`: Retrieves top-level comments for a post with pagination and sorting. Populates user details. Does not fetch soft-deleted comments.
+    *   `updateComment`: Updates a comment's content (author or admin only).
+    *   `deleteComment`: Soft deletes a comment by setting `isDeleted: true` (author or admin only). If it's a reply, decrements `parentComment.childrenCount`.
+    *   `toggleLikeComment`: Adds/removes a user's like from a comment.
+*   **Routes (`server/src/routes/comment.routes.js`):**
+    *   Mounted at: `/api/posts/:postId/comments` (uses `express.Router({ mergeParams: true })`)
+    *   Endpoints:
+        *   `POST /`: Create a comment for `postId`.
+        *   `GET /`: Get comments for `postId`.
+        *   `PUT /:commentId`: Update a specific comment.
+        *   `DELETE /:commentId`: Delete a specific comment.
+        *   `POST /:commentId/like`: Like/unlike a specific comment.
+    *   All routes protected by `authMiddleware`.
+
+### 2.4. Authentication Middleware
+
+*   **File:** `server/src/middleware/auth.middleware.js`
+*   **Functionality:**
+    *   Extracts JWT from `Authorization: Bearer TOKEN` header.
+    *   Verifies the token using `jsonwebtoken` and `process.env.JWT_SECRET`.
+    *   If valid, populates `req.user` with `{ id: decoded.id, role: decoded.role || 'user' }`.
+    *   Handles errors (no token, invalid token, expired token) by returning appropriate HTTP status codes (401, 403).
+*   **Integration:** Applied to all Post and Comment routes (and previously OOTD routes) to protect endpoints and identify the acting user.
+
+## 3. User Model Integration Details
+
+*   The system correctly uses the `User` model located at `server/src/models/User.js`.
+*   User details populated in API responses (e.g., for posts and comments) include `nickname`, `profileImage`, and `email`, aligning with the actual fields in the `User` schema. Previous references to `username` or `profilePicture` were corrected.
+
+## 4. Dependencies Added
+
+*   `jsonwebtoken`: For generating and verifying JWTs in the authentication middleware. (Note: `bcrypt` was already assumed for password hashing as per `tech-stack.md`).
+
+## 5. Next Steps (Post-Documentation)
+
+*   Continue with code refinement:
+    *   Robust input validation for all API endpoints.
+    *   Comprehensive error handling and consistent error responses.
+    *   Further detailing of business logic (e.g., notifications, specific postType behaviors).
+    *   Unit and integration testing.
+
+This document will be updated as development progresses or if requirements change.

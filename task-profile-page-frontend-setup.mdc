@@ -3,3 +3,30 @@ description:
 globs:
 alwaysApply: false
 ---
+## 개요
+사용자 프로필 페이지(`example.com/profile/{userNickname}`)의 기본적인 프론트엔드 구조를 설정합니다.
+이 페이지는 향후 사용자의 게시물, 활동 정보 등을 표시하게 됩니다.
+
+## 세부 요구사항
+1.  **URL 접두사**: `/profile/` 사용 (예: `/profile/john_doe`)
+2.  **라우팅 설정**: React Router DOM을 사용하여 `/profile/:userNickname` 경로와 `ProfilePage` 컴포넌트를 연결합니다.
+3.  **`ProfilePage` 컴포넌트 생성 (`src/pages/ProfilePage.js`)**:
+    *   URL 파라미터에서 `userNickname`을 가져와 화면에 "Profile of: {userNickname}" 형태로 표시합니다.
+    *   사용자 정보 표시 영역 (Placeholder UI)
+    *   활동 탭 버튼 (HTML `<button>` 또는 MUI `<Button>`) - "게시물", "좋아요", "투표" (기능은 미구현, UI만)
+4.  **기본 네비게이션 링크**: 헤더 또는 임의의 위치에 현재 로그인한 사용자의 프로필 페이지로 이동하는 링크/버튼 추가 (예: "내 프로필" -> `/profile/{loggedInUserNickname}`). 로그인 기능 구현 전이므로, 일단 고정된 닉네임으로 연결하거나 UI만 만듭니다.
+5.  **문서화**:
+    *   `docs/directory-structure.md`에 새로운 파일 및 디렉토리 구조 반영.
+    *   (필요시) `docs/tech-stack.md` 업데이트 (React Router는 이미 명시되어 있음).
+
+## 승인 조건
+*   위 세부 요구사항에 따라 프론트엔드 기본 틀이 구현되어야 합니다.
+*   `/profile/{userNickname}`으로 접속 시, 해당 닉네임이 포함된 기본 페이지가 렌더링되어야 합니다.
+*   관련 문서가 업데이트되어야 합니다.
+
+## 참고 자료
+*   사용자 초기 요청 메시지
+*   Palette 프로젝트 규칙 (`.cursor/rules/`)
+
+## 개발 로그/결정 사항
+*   URL 접두사로 `/profile/` 사용하기로 결정 (사용자 확인).

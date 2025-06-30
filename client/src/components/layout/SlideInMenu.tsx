@@ -8,58 +8,164 @@ import {
   Collapse,
   Drawer,
   Divider,
-  ListItemButtonProps
+  ListItemButtonProps,
+  IconButton
 } from '@mui/material';
 import { styled, useTheme, alpha } from '@mui/material/styles';
 import { Link as RouterLink, LinkProps as RouterLinkProps } from 'react-router-dom';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface SlideInMenuProps {
   open: boolean;
   onClose: () => void;
 }
 
-const MenuLogoContainer = styled(Box)(({ theme }) => ({
-  paddingLeft: theme.spacing(2.5),
-  paddingRight: theme.spacing(2.5),
-  paddingTop: theme.spacing(2),
-  paddingBottom: theme.spacing(2),
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  height: '4rem', // 64px, to match header height
+// Apple 스타일 컴포넌트들
+const AppleDrawer = styled(Drawer)(({ theme }) => ({
+  '& .MuiDrawer-paper': {
+    width: 320,
+    background: 'rgba(255, 255, 255, 0.85)',
+    backdropFilter: 'blur(30px)',
+    borderRight: '1px solid rgba(255, 255, 255, 0.3)',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    '&::-webkit-scrollbar': {
+      width: '6px',
+    },
+    '&::-webkit-scrollbar-track': {
+      background: 'transparent',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'rgba(0, 0, 0, 0.2)',
+      borderRadius: '6px',
+      '&:hover': {
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      }
+    },
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(0, 0, 0, 0.2) transparent',
+  },
+}));
+
+const MenuHeader = styled(Box)({
+  padding: '24px 20px 16px 20px',
+  borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+  background: 'rgba(255, 255, 255, 0.1)',
   display: 'flex',
   alignItems: 'center',
-}));
+  justifyContent: 'space-between',
+  position: 'sticky',
+  top: 0,
+  zIndex: 10,
+  backdropFilter: 'blur(20px)',
+});
 
-const StyledListItemButton = styled(ListItemButton)<ListItemButtonProps & { component?: React.ElementType, to?: string }>(({ theme }) => ({
-  paddingTop: theme.spacing(1.5),
-  paddingBottom: theme.spacing(1.5),
-  paddingLeft: theme.spacing(3),
-  paddingRight: theme.spacing(3),
-  color: theme.palette.text.primary,
-  fontWeight: 500,
+const AppleLogo = styled(Typography)({
+  fontSize: '1.75rem',
+  fontWeight: 700,
+  color: '#1d1d1f',
+  fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+  letterSpacing: '-0.02em',
+  background: 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+});
+
+const CloseButton = styled(IconButton)({
+  width: '32px',
+  height: '32px',
+  backgroundColor: 'rgba(0, 0, 0, 0.08)',
+  borderRadius: '50%',
+  transition: 'all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
   '&:hover': {
-    backgroundColor: theme.palette.action.hover,
-    color: theme.palette.primary.main,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    transform: 'scale(1.05)',
   },
+  '& .MuiSvgIcon-root': {
+    fontSize: '18px',
+    color: '#1d1d1f',
+  }
+});
+
+const MenuContainer = styled(Box)({
+  padding: '16px 12px',
+});
+
+const AppleListItemButton = styled(ListItemButton)<ListItemButtonProps & { component?: React.ElementType, to?: string }>(({ theme }) => ({
+  padding: '14px 16px',
+  margin: '4px 0',
+  borderRadius: '12px',
+  fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+  fontWeight: 500,
+  fontSize: '1rem',
+  color: '#1d1d1f',
+  transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+  background: 'transparent',
+  minHeight: 'unset',
+  '&:hover': {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    color: '#007aff',
+    transform: 'translateX(4px)',
+  },
+  '&:active': {
+    transform: 'translateX(4px) scale(0.98)',
+  },
+  '& .MuiListItemText-primary': {
+    fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+    fontWeight: 500,
+    fontSize: '1rem',
+  },
+  '& .MuiSvgIcon-root': {
+    color: 'inherit',
+    transition: 'transform 0.2s ease',
+  }
 }));
 
-const SubMenuListItemButton = styled(ListItemButton)<ListItemButtonProps & { component?: React.ElementType, to?: string }>(({ theme }) => ({
-  paddingTop: theme.spacing(1.2),
-  paddingBottom: theme.spacing(1.2),
-  paddingLeft: theme.spacing(5),
-  color: theme.palette.text.secondary,
+const AppleSubMenuButton = styled(ListItemButton)<ListItemButtonProps & { component?: React.ElementType, to?: string }>(({ theme }) => ({
+  padding: '10px 16px 10px 32px',
+  margin: '2px 0',
+  borderRadius: '8px',
+  fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+  fontWeight: 400,
   fontSize: '0.9rem',
+  color: '#86868b',
+  transition: 'all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+  background: 'transparent',
+  minHeight: 'unset',
   '&:hover': {
-    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-    color: theme.palette.primary.main,
+    backgroundColor: 'rgba(0, 122, 255, 0.08)',
+    color: '#007aff',
+    transform: 'translateX(8px)',
+  },
+  '&:active': {
+    transform: 'translateX(8px) scale(0.98)',
   },
   '&.Mui-selected': {
-    color: theme.palette.primary.main,
+    backgroundColor: 'rgba(0, 122, 255, 0.15)',
+    color: '#007aff',
     fontWeight: 600,
-    backgroundColor: alpha(theme.palette.primary.main, 0.12),
+    '&:hover': {
+      backgroundColor: 'rgba(0, 122, 255, 0.2)',
+    }
   },
+  '& .MuiListItemText-primary': {
+    fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+    fontSize: '0.9rem',
+  }
 }));
+
+const MenuSection = styled(Box)({
+  marginBottom: '24px',
+});
+
+const SectionDivider = styled(Divider)({
+  margin: '16px 0',
+  backgroundColor: 'rgba(0, 0, 0, 0.08)',
+  height: '1px',
+});
 
 interface MenuItemStructure {
   text: string;
@@ -78,16 +184,16 @@ const menuItemsData: MenuItemStructure[] = [
   {
     text: '게시판',
     submenu: [
-      { text: '질문', link: '/board/qna' },
-      { text: '투표', link: '/board/polls' },
-      { text: 'OOTD', link: '/board/ootd' },
+      { text: '질문', link: '/qna' },
+      { text: '투표', link: '/polls' },
+      { text: 'OOTD', link: '/ootd' },
     ],
   },
   {
     text: '소통',
     submenu: [
-      { text: '자유게시판', link: '/community/free' },
-      { text: '자기소개', link: '/community/intro' },
+      { text: '자유게시판', link: '/free' },
+      { text: '자기소개', link: '/introduction' },
     ],
   },
   {
@@ -110,79 +216,99 @@ const SlideInMenu: React.FC<SlideInMenuProps> = ({ open, onClose }) => {
 
   const renderMenu = (items: MenuItemStructure[]) => {
     return items.map((item, index) => {
+      const isLastItem = index === items.length - 1;
+      
       if (item.submenu) {
+        const isOpen = openSubmenus[item.text];
         return (
-          <React.Fragment key={item.text + index}>
-            <StyledListItemButton onClick={() => handleSubmenuToggle(item.text)}>
+          <MenuSection key={item.text + index}>
+            <AppleListItemButton onClick={() => handleSubmenuToggle(item.text)}>
               <ListItemText primary={item.text} />
-              {openSubmenus[item.text] ? <ExpandMoreIcon /> : <ChevronRightIcon />}
-            </StyledListItemButton>
-            <Collapse in={openSubmenus[item.text]} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding sx={{ backgroundColor: theme.palette.background.default }}>
+              {isOpen ? (
+                <ExpandMoreIcon sx={{ 
+                  transform: 'rotate(0deg)',
+                  transition: 'transform 0.2s ease'
+                }} />
+              ) : (
+                <ChevronRightIcon sx={{ 
+                  transform: 'rotate(0deg)',
+                  transition: 'transform 0.2s ease'
+                }} />
+              )}
+            </AppleListItemButton>
+            <Collapse 
+              in={isOpen} 
+              timeout={{
+                enter: 300,
+                exit: 200
+              }}
+              easing={{
+                enter: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                exit: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+              }}
+            >
+              <List component="div" disablePadding sx={{ pl: 1, mt: 1 }}>
                 {item.submenu.map(subItem => (
                   // @ts-ignore
-                  <SubMenuListItemButton
+                  <AppleSubMenuButton
                     key={subItem.text}
                     component={RouterLink}
                     to={subItem.link}
                     onClick={onClose}
                   >
                     <ListItemText primary={subItem.text} />
-                  </SubMenuListItemButton>
+                  </AppleSubMenuButton>
                 ))}
               </List>
             </Collapse>
-          </React.Fragment>
+            {!isLastItem && <SectionDivider />}
+          </MenuSection>
         );
       }
       return (
-        // @ts-ignore
-        <StyledListItemButton
-          key={item.text + index}
-          component={RouterLink}
-          to={item.link || '#'}
-          onClick={onClose}
-        >
-          <ListItemText primary={item.text} />
-        </StyledListItemButton>
+        <MenuSection key={item.text + index}>
+          {/* @ts-ignore */}
+          <AppleListItemButton
+            component={RouterLink}
+            to={item.link || '#'}
+            onClick={onClose}
+          >
+            <ListItemText primary={item.text} />
+          </AppleListItemButton>
+          {!isLastItem && <SectionDivider />}
+        </MenuSection>
       );
     });
   };
 
   return (
-    <Drawer
+    <AppleDrawer
       anchor="left"
       open={open}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: 288,
-          backgroundColor: theme.palette.background.paper,
-          boxShadow: theme.shadows[5],
-          '&::-webkit-scrollbar': {
-            width: '6px',
-          },
-          '&::-webkit-scrollbar-track': {
-            background: theme.palette.grey[200],
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: theme.palette.primary.main,
-            borderRadius: '3px',
-          },
-          scrollbarWidth: 'thin',
-          scrollbarColor: `${theme.palette.primary.main} ${theme.palette.grey[200]}`,
-        },
+      SlideProps={{
+        direction: 'right'
+      }}
+      transitionDuration={{
+        enter: 300,
+        exit: 250
       }}
     >
-      <MenuLogoContainer>
-        <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+      <MenuHeader>
+        <AppleLogo>
           Palette
-        </Typography>
-      </MenuLogoContainer>
-      <List component="nav" sx={{ py: 1.5 }}>
-        {renderMenu(menuItemsData)}
-      </List>
-    </Drawer>
+        </AppleLogo>
+        <CloseButton onClick={onClose}>
+          <CloseIcon />
+        </CloseButton>
+      </MenuHeader>
+      
+      <MenuContainer>
+        <List component="nav" disablePadding>
+          {renderMenu(menuItemsData)}
+        </List>
+      </MenuContainer>
+    </AppleDrawer>
   );
 };
 

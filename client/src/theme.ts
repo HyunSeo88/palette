@@ -316,6 +316,10 @@ export const getSectionColors = (theme: Theme) => ({
     background: '#FFF8E1',
     color: '#F57F17',
   },
+  'community': {
+    background: '#E0F7FA',
+    color: '#00796B',
+  },
   'voting': {
     background: '#ECEFF1',
     color: '#455A64',

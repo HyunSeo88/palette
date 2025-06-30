@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palette 고객 여정 지도</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: #fafbfc;
+            line-height: 1.5;
+        }
+
+        .journey-map-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e1e5e9;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .content-container {
+            padding: 24px;
+        }
+
+        .chart-container {
+            display: flex;
+            gap: 0;
+            min-width: 1400px;
+            background: #ffffff;
+            border: 1px solid #e1e5e9;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .y-axis-container {
+            width: 140px;
+            background: #f8f9fa;
+            border-right: 1px solid #e1e5e9;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .y-axis-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 16px;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: -0.02em;
+            position: relative;
+        }
+
+        .y-axis-section.positive {
+            color: #0f7b0f;
+            background: linear-gradient(to bottom, transparent 0%, rgba(34, 197, 94, 0.03) 100%);
+        }
+
+        .y-axis-section.baseline {
+            color: #64748b;
+            background: rgba(100, 116, 139, 0.02);
+            border-top: 1px solid #e1e5e9;
+            border-bottom: 1px solid #e1e5e9;
+            flex: 0.3;
+        }
+
+        .y-axis-section.negative {
+            color: #dc2626;
+            background: linear-gradient(to bottom, rgba(239, 68, 68, 0.03) 0%, transparent 100%);
+        }
+
+        .y-axis-section::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .y-axis-section.positive::after { background: #22c55e; }
+        .y-axis-section.baseline::after { background: #94a3b8; }
+        .y-axis-section.negative::after { background: #ef4444; }
+
+        .graph-container {
+            flex: 1;
+            position: relative;
+            height: 480px;
+            background: #ffffff;
+        }
+
+        .baseline-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #cbd5e1;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .data-point {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            z-index: 10;
+            cursor: default;
+        }
+
+        .data-point.overflow-right {
+            flex-direction: row-reverse;
+        }
+
+        .data-point.overflow-right .dot {
+            margin-left: 6px;
+            margin-right: 0;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            flex-shrink: 0;
+        }
+
+        .positive .dot { background: #22c55e; }
+        .neutral .dot { background: #64748b; }
+        .negative .dot { background: #ef4444; }
+        .excited .dot { background: #f59e0b; }
+
+        .label {
+            background: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #e1e5e9;
+            font-size: 11px;
+            font-weight: 500;
+            color: #374151;
+            white-space: nowrap;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            letter-spacing: -0.01em;
+        }
+
+        .stages-container {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .stage-card {
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 16px 12px;
+            text-align: center;
+            transition: all 0.15s ease;
+        }
+
+        .stage-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .stage-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .stage-subtitle {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .touchpoints-container {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+        }
+
+        .touchpoint-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .touchpoint-item {
+            background: #eff6ff;
+            color: #1e40af;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 500;
+            text-align: center;
+            transition: background-color 0.15s ease;
+            letter-spacing: -0.01em;
+            line-height: 1.3;
+        }
+
+        .touchpoint-item:hover {
+            background: #dbeafe;
+        }
+
+        .legend-container {
+            margin-top: 24px;
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .legend-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend-dot.positive { background: #22c55e; }
+        .legend-dot.excited { background: #f59e0b; }
+        .legend-dot.neutral { background: #64748b; }
+        .legend-dot.negative { background: #ef4444; }
+
+        .legend-text {
+            font-size: 11px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .footer {
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e1e5e9;
+            background: #f8f9fa;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .content-container { padding: 16px; }
+            .chart-container { min-width: 1200px; }
+            .header { padding: 24px 16px; }
+            .stages-container { gap: 8px; }
+            .touchpoints-container { gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="journey-map-wrapper">
+        <header class="header">
+            <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.03em;">Palette 고객 여정 지도</h1>
+            <p style="font-size: 15px; opacity: 0.9; font-weight: 500;">20대 초중반 남자 대학생의 패션 문제와 솔루션 기반 여정 분석</p>
+        </header>
+
+        <div class="content-container">
+            <div class="chart-container">
+                <div class="y-axis-container">
+                    <div class="y-axis-section positive">긍정적 경험</div>
+                    <div class="y-axis-section baseline">기준선</div>
+                    <div class="y-axis-section negative">부정적 경험</div>
+                </div>
+
+                <div class="graph-container">
+                    <div class="baseline-line"></div>
+
+                    <!-- Stage 1: Need Recognition (0-20%) -->
+                    <div class="data-point negative" style="top: 75%; left: 2%;"><span class="dot"></span><span class="label">스타일 막막 (A)</span></div>
+                    <div class="data-point negative" style="top: 85%; left: 7%;"><span class="dot"></span><span class="label">TPO 고민 (B)</span></div>
+                    <div class="data-point negative" style="top: 80%; left: 12%;"><span class="dot"></span><span class="label">정보 과다 (C)</span></div>
+                    <div class="data-point neutral" style="top: 55%; left: 4%;"><span class="dot"></span><span class="label">예산 부족 (D)</span></div>
+                    <div class="data-point negative" style="top: 65%; left: 17%;"><span class="dot"></span><span class="label">조언자 부재 (E)</span></div>
+                    <div class="data-point excited" style="top: 35%; left: 9%;"><span class="dot"></span><span class="label">변화 의지!</span></div>
+
+                    <!-- Stage 2: Information Search (20-40%) -->
+                    <div class="data-point excited" style="top: 25%; left: 23%;"><span class="dot"></span><span class="label">스타일 앱 기대 (S1)</span></div>
+                    <div class="data-point positive" style="top: 40%; left: 28%;"><span class="dot"></span><span class="label">TPO 추천 기대 (S2)</span></div>
+                    <div class="data-point positive" style="top: 20%; left: 34%;"><span class="dot"></span><span class="label">AI 추천 기대 (S3)</span></div>
+                    <div class="data-point neutral" style="top: 60%; left: 39%;"><span class="dot"></span><span class="label">피드백 궁금 (S4)</span></div>
+                    <div class="data-point positive" style="top: 45%; left: 26%;"><span class="dot"></span><span class="label">할인 정보 기대 (D)</span></div>
+                    <div class="data-point negative" style="top: 75%; left: 32%;"><span class="dot"></span><span class="label">가입 번거로움</span></div>
+
+                    <!-- Stage 3: Service Usage (40-60%) -->
+                    <div class="data-point positive" style="top: 15%; left: 44%;"><span class="dot"></span><span class="label">AI 분석 만족 (S1)</span></div>
+                    <div class="data-point positive" style="top: 40%; left: 49%;"><span class="dot"></span><span class="label">TPO 코디 만족 (S2)</span></div>
+                    <div class="data-point positive" style="top: 10%; left: 56%;"><span class="dot"></span><span class="label">맞춤 추천 편함 (S3)</span></div>
+                    <div class="data-point positive" style="top: 50%; left: 45%;"><span class="dot"></span><span class="label">커뮤니티 유용 (S4)</span></div>
+                    <div class="data-point positive" style="top: 45%; left: 54%;"><span class="dot"></span><span class="label">가상피팅 편리 (F)</span></div>
+                    <div class="data-point negative" style="top: 75%; left: 51%;"><span class="dot"></span><span class="label">가상피팅 한계</span></div>
+
+                    <!-- Stage 4: Purchase Decision (60-80%) -->
+                    <div class="data-point positive" style="top: 35%; left: 62%;"><span class="dot"></span><span class="label">가상피팅 확신 (F)</span></div>
+                    <div class="data-point positive" style="top: 15%; left: 69%;"><span class="dot"></span><span class="label">후기 신뢰 (S4)</span></div>
+                    <div class="data-point excited" style="top: 25%; left: 76%;"><span class="dot"></span><span class="label">할인 만족 (D)</span></div>
+                    <div class="data-point positive" style="top: 50%; left: 65%;"><span class="dot"></span><span class="label">사이즈 확신 (F)</span></div>
+                    <div class="data-point neutral" style="top: 65%; left: 72%;"><span class="dot"></span><span class="label">가격 적정 (D)</span></div>
+
+                    <!-- Stage 5: Feedback & Re-engagement (80-100%) -->
+                    <div class="data-point positive overflow-right" style="top: 20%; left: 82%;"><span class="dot"></span><span class="label">코디 공유 (S4)</span></div>
+                    <div class="data-point excited overflow-right" style="top: 35%; left: 87%;"><span class="dot"></span><span class="label">조언 뿌듯 (S4)</span></div>
+                    <div class="data-point positive overflow-right" style="top: 25%; left: 91%;"><span class="dot"></span><span class="label">자신감 상승</span></div>
+                    <div class="data-point excited overflow-right" style="top: 40%; left: 85%;"><span class="dot"></span><span class="label">재이용 의지 (S2)</span></div>
+                    <div class="data-point negative overflow-right" style="top: 75%; left: 89%;"><span class="dot"></span><span class="label">후기 귀찮음</span></div>
+                </div>
+            </div>
+
+            <div class="stages-container">
+                <div class="stage-card">
+                    <div class="stage-title">1. 니즈 발생</div>
+                    <div class="stage-subtitle">패션 Pain Point 인식</div>
+                </div>
+                <div class="stage-card">
+                    <div class="stage-title">2. 정보 탐색</div>
+                    <div class="stage-subtitle">Palette 솔루션 발견</div>
+                </div>
+                <div class="stage-card">
+                    <div class="stage-title">3. 서비스 활용</div>
+                    <div class="stage-subtitle">핵심 기능 경험</div>
+                </div>
+                <div class="stage-card">
+                    <div class="stage-title">4. 구매 결정</div>
+                    <div class="stage-subtitle">확신 기반 구매</div>
+                </div>
+                <div class="stage-card">
+                    <div class="stage-title">5. 피드백/재참여</div>
+                    <div class="stage-subtitle">커뮤니티 참여 & 지속 사용</div>
+                </div>
+            </div>
+
+            <div class="touchpoints-container">
+                <div class="touchpoint-group">
+                    <div class="touchpoint-item">SNS 트렌드</div>
+                    <div class="touchpoint-item">TPO 상황</div>
+                    <div class="touchpoint-item">지인 스타일</div>
+                    <div class="touchpoint-item">정보 과다</div>
+                    <div class="touchpoint-item">유튜브</div>
+                    <div class="touchpoint-item">쇼핑 실패</div>
+                </div>
+                <div class="touchpoint-group">
+                    <div class="touchpoint-item">Palette 발견</div>
+                    <div class="touchpoint-item">회원가입</div>
+                    <div class="touchpoint-item">프로필 입력</div>
+                    <div class="touchpoint-item">AI 분석 (S1)</div>
+                    <div class="touchpoint-item">TPO 서비스 (S2)</div>
+                    <div class="touchpoint-item">가상피팅 (F)</div>
+                </div>
+                <div class="touchpoint-group">
+                    <div class="touchpoint-item">맞춤 추천 (S1)</div>
+                    <div class="touchpoint-item">TPO 코디 (S2)</div>
+                    <div class="touchpoint-item">큐레이션 (S3)</div>
+                    <div class="touchpoint-item">커뮤니티 (S4)</div>
+                    <div class="touchpoint-item">가상 체험 (F)</div>
+                    <div class="touchpoint-item">할인 정보 (D)</div>
+                </div>
+                <div class="touchpoint-group">
+                    <div class="touchpoint-item">피팅 결과 (F)</div>
+                    <div class="touchpoint-item">사이즈 Q&A (F)</div>
+                    <div class="touchpoint-item">후기 확인 (S4)</div>
+                    <div class="touchpoint-item">할인 적용 (D)</div>
+                    <div class="touchpoint-item">상품 정보</div>
+                    <div class="touchpoint-item">결제</div>
+                </div>
+                <div class="touchpoint-group">
+                    <div class="touchpoint-item">코디 갤러리 (S4)</div>
+                    <div class="touchpoint-item">피드백 제공 (S4)</div>
+                    <div class="touchpoint-item">후기 공유 (S4)</div>
+                    <div class="touchpoint-item">새 TPO 문의 (S2)</div>
+                    <div class="touchpoint-item">할인 확인 (D)</div>
+                    <div class="touchpoint-item">재이용</div>
+                </div>
+            </div>
+
+            <div class="legend-container">
+                <div class="legend-title">감정 상태 범례 및 솔루션 코드</div>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-dot positive"></div>
+                        <span class="legend-text">긍정적 경험</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot excited"></div>
+                        <span class="legend-text">흥미/기대감</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot neutral"></div>
+                        <span class="legend-text">중립적 상태</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot negative"></div>
+                        <span class="legend-text">부정적 경험</span>
+                    </div>
+                </div>
+                <div style="margin-top: 12px; font-size: 11px; color: #64748b;">
+                    <strong>솔루션 코드:</strong> S1(스타일분석) S2(TPO코디) S3(개인화큐레이션) S4(커뮤니티피드백) F(가상피팅) D(할인정보)
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-text">© 2025 Palette Team · Pain Point 기반 고객 여정 지도</div>
+        </footer>
+    </div>
+</body>
+</html>

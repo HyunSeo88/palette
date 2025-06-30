@@ -47,7 +47,14 @@ const userSchema = new mongoose.Schema({
   },
   points: {
     type: Number,
-    default: 0
+    required: true,
+    default: 0,
+    min: 0
+  },
+  level: {
+    type: String,
+    required: true,
+    default: 'Bronze' // 초기 등급을 'Bronze'로 설정하거나, 프로젝트에 맞는 다른 기본 등급으로 설정
   },
   isEmailVerified: {
     type: Boolean,

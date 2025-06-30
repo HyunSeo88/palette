@@ -30,6 +30,10 @@
     - `docs/tasks/auth-system.md` (회원 탈퇴, 카카오 이메일 미제공 처리, 신규 API 반영)
     - `docs/tech-stack.md` (변경 사항 없음)
 
+- **프로젝트 문서 업데이트 (1차):**
+    - `docs/directory-structure.md` 파일 최신화: 실제 프로젝트 구조를 정확히 반영하도록 전체 디렉토리 및 파일 목록 업데이트 완료.
+    - `docs/tech-stack.md` 파일 최신화: `package.json` 파일(루트, 클라이언트, 서버) 분석을 통해 사용된 라이브러리 및 프레임워크 정보 업데이트 완료.
+
 ## 3. 다음 작업 우선순위
 
 ### 3.1. 최우선 작업 (High Priority)

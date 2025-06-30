@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palette 기술개발 계획 차트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            background: white;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .chart-container {
+            background: white;
+            border: 2px solid #1e40af;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e40af;
+            border-bottom: 3px solid #1e40af;
+            padding-bottom: 15px;
+        }
+
+        .tech-matrix {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .tech-matrix th {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #1e40af;
+        }
+
+        .tech-matrix th.tech-header {
+            background: linear-gradient(135deg, #374151, #4b5563);
+            width: 200px;
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        .tech-matrix td {
+            padding: 12px 8px;
+            border: 1px solid #d1d5db;
+            text-align: center;
+            line-height: 1.4;
+            vertical-align: top;
+        }
+
+        .tech-matrix td.tech-name {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #1f2937;
+            text-align: left;
+            padding-left: 15px;
+            border-left: 4px solid;
+        }
+
+        .tech-matrix tr:nth-child(2) td.tech-name { border-left-color: #3b82f6; }
+        .tech-matrix tr:nth-child(3) td.tech-name { border-left-color: #8b5cf6; }
+        .tech-matrix tr:nth-child(4) td.tech-name { border-left-color: #ec4899; }
+        .tech-matrix tr:nth-child(5) td.tech-name { border-left-color: #f59e0b; }
+        .tech-matrix tr:nth-child(6) td.tech-name { border-left-color: #10b981; }
+        .tech-matrix tr:nth-child(7) td.tech-name { border-left-color: #ef4444; }
+
+        .stage-1 { background: #dbeafe; }
+        .stage-2 { background: #f3e8ff; }
+        .stage-3 { background: #fdf2f8; }
+
+        .stage-icon {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .stage-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+
+        .stage-desc {
+            color: #6b7280;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        .summary {
+            text-align: center;
+            margin-top: 25px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .summary-text {
+            font-size: 0.95rem;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        /* 인쇄 최적화 */
+        @media print {
+            body {
+                background: white;
+                padding: 20px;
+            }
+            
+            .chart-container {
+                box-shadow: none;
+                border: 2px solid #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <h1 class="chart-title">🚀 Palette 핵심 기술 개발 계획</h1>
+        
+        <table class="tech-matrix">
+            <thead>
+                <tr>
+                    <th class="tech-header">핵심 기술 영역</th>
+                    <th>1단계 (초기)</th>
+                    <th>2단계 (중기)</th>
+                    <th>3단계 (장기)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="tech-name">🧠 AI 기반 초개인화<br>스타일리스트</td>
+                    <td class="stage-1">
+                        <span class="stage-icon">⚡</span>
+                        <div class="stage-title">기본 ML 모델</div>
+                        <div class="stage-desc">공개 데이터셋 활용<br>기본 추천 모델 구축</div>
+                    </td>
+                    <td class="stage-2">
+                        <span class="stage-icon">📈</span>
+                        <div class="stage-title">사용자 데이터 학습</div>
+                        <div class="stage-desc">실제 데이터 수집<br>모델 정확성 향상</div>
+                    </td>
+                    <td class="stage-3">
+                        <span class="stage-icon">🤖</span>
+                        <div class="stage-title">딥러닝 고도화</div>
+                        <div class="stage-desc">고급 알고리즘<br>실시간 학습 시스템</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tech-name">👓 가상 착용<br>시뮬레이션</td>
+                    <td class="stage-1">
+                        <span class="stage-icon">🖼️</span>
+                        <div class="stage-title">2D 이미지 기반</div>
+                        <div class="stage-desc">간단한 이미지<br>가상 착용 기능</div>
+                    </td>
+                    <td class="stage-2">
+                        <span class="stage-icon">🎭</span>
+                        <div class="stage-title">3D 아바타 생성</div>
+                        <div class="stage-desc">신체 데이터 기반<br>3D 모델링 기술</div>
+                    </td>
+                    <td class="stage-3">
+                        <span class="stage-icon">🥽</span>
+                        <div class="stage-title">고급 AR 기술</div>
+                        <div class="stage-desc">전문업체 협력<br>실시간 AR 체험</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tech-name">🎯 TPO 맞춤<br>코디 추천</td>
+                    <td class="stage-1">
+                        <span class="stage-icon">📋</span>
+                        <div class="stage-title">기본 추천 로직</div>
+                        <div class="stage-desc">상황별 코디<br>기본 알고리즘</div>
+                    </td>
+                    <td class="stage-2">
+                        <span class="stage-icon">🔄</span>
+                        <div class="stage-title">피드백 반영</div>
+                        <div class="stage-desc">사용자 피드백<br>정확도 개선</div>
+                    </td>
+                    <td class="stage-3">
+                        <span class="stage-icon">⚡</span>
+                        <div class="stage-title">실시간 적응형</div>
+                        <div class="stage-desc">상황 인식<br>적응형 추천</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tech-name">👥 UGC 기반<br>커뮤니티 플랫폼</td>
+                    <td class="stage-1">
+                        <span class="stage-icon">🌐</span>
+                        <div class="stage-title">기본 플랫폼</div>
+                        <div class="stage-desc">표준 웹/모바일<br>커뮤니티 개발</div>
+                    </td>
+                    <td class="stage-2">
+                        <span class="stage-icon">🎨</span>
+                        <div class="stage-title">UI/UX 최적화</div>
+                        <div class="stage-desc">사용자 참여<br>디자인 고도화</div>
+                    </td>
+                    <td class="stage-3">
+                        <span class="stage-icon">🚀</span>
+                        <div class="stage-title">고급 기능 확장</div>
+                        <div class="stage-desc">소셜 기능<br>보안 최적화</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tech-name">🔍 맞춤형 콘텐츠<br>큐레이션</td>
+                    <td class="stage-1">
+                        <span class="stage-icon">📊</span>
+                        <div class="stage-title">기본 필터링</div>
+                        <div class="stage-desc">프로필 기반<br>필터링 시스템</div>
+                    </td>
+                    <td class="stage-2">
+                        <span class="stage-icon">🤝</span>
+                        <div class="stage-title">협업 필터링</div>
+                        <div class="stage-desc">사용자 유사도<br>기반 추천</div>
+                    </td>
+                    <td class="stage-3">
+                        <span class="stage-icon">🧠</span>
+                        <div class="stage-title">고급 행동 분석</div>
+                        <div class="stage-desc">패턴 분석<br>정교한 개인화</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tech-name">💰 효율적 쇼핑<br>가이드</td>
+                    <td class="stage-1">
+                        <span class="stage-icon">🗃️</span>
+                        <div class="stage-title">할인 정보 DB</div>
+                        <div class="stage-desc">중저가 브랜드<br>할인 정보 수집</div>
+                    </td>
+                    <td class="stage-2">
+                        <span class="stage-icon">📊</span>
+                        <div class="stage-title">가격 비교</div>
+                        <div class="stage-desc">멀티 브랜드<br>최적 타이밍 추천</div>
+                    </td>
+                    <td class="stage-3">
+                        <span class="stage-icon">♻️</span>
+                        <div class="stage-title">중고거래 플랫폼</div>
+                        <div class="stage-desc">전문업체 협력<br>안전한 거래시스템</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color stage-1"></div>
+                <span>1단계: 기본 기술 구축 (초기)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color stage-2"></div>
+                <span>2단계: 고도화 기술 (중기)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color stage-3"></div>
+                <span>3단계: 첨단 기술 (장기)</span>
+            </div>
+        </div>
+
+        <div class="summary">
+            <div class="summary-text">
+                <strong>6대 핵심 기술</strong> × <strong>3단계 체계적 개발</strong> = <strong>18개 세부 기술과제</strong><br>
+                단계적이고 체계적인 기술 개발을 통해 Palette의 경쟁력과 사용자 만족도를 지속적으로 향상
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

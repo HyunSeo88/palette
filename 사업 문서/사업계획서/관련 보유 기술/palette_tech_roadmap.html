@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palette 기술개발 로드맵</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .roadmap-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* 헤더 섹션 */
+        .header-section {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            padding: 60px 40px;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="tech-grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23tech-grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .main-title {
+            font-size: 3.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-subtitle {
+            font-size: 1.3rem;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 1rem;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* 타임라인 섹션 */
+        .timeline-section {
+            padding: 80px 40px;
+        }
+
+        .timeline-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .timeline-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .timeline-subtitle {
+            font-size: 1.1rem;
+            color: #64748b;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* 타임라인 트랙 */
+        .timeline-track {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 60px 0;
+            position: relative;
+        }
+
+        .timeline-track::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+            border-radius: 2px;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .timeline-milestone {
+            background: white;
+            border: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1e40af;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .timeline-milestone.current {
+            border-color: #8b5cf6;
+            color: #7c3aed;
+            background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+        }
+
+        .timeline-milestone.future {
+            border-color: #ec4899;
+            color: #be185d;
+            background: linear-gradient(135deg, #fdf2f8, #fce7f3);
+        }
+
+        .timeline-label {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            white-space: nowrap;
+        }
+
+        /* 기술 그리드 */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 80px;
+        }
+
+        .tech-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tech-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+        }
+
+        .tech-card.ai::before { background: linear-gradient(90deg, #3b82f6, #1e40af); }
+        .tech-card.ar::before { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+        .tech-card.tpo::before { background: linear-gradient(90deg, #ec4899, #be185d); }
+        .tech-card.ugc::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .tech-card.curation::before { background: linear-gradient(90deg, #10b981, #059669); }
+        .tech-card.shopping::before { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+        .tech-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .tech-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            margin-right: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .tech-icon.ai { background: linear-gradient(135deg, #3b82f6, #1e40af); }
+        .tech-icon.ar { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .tech-icon.tpo { background: linear-gradient(135deg, #ec4899, #be185d); }
+        .tech-icon.ugc { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .tech-icon.curation { background: linear-gradient(135deg, #10b981, #059669); }
+        .tech-icon.shopping { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        .tech-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1f2937;
+            line-height: 1.3;
+        }
+
+        .tech-description {
+            font-size: 1rem;
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* 개발 단계 */
+        .development-stages {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stage {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .stage.active {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-color: #3b82f6;
+        }
+
+        .stage.planned {
+            background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+            border-color: #8b5cf6;
+        }
+
+        .stage.future {
+            background: linear-gradient(135deg, #fdf2f8, #fce7f3);
+            border-color: #ec4899;
+        }
+
+        .stage-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .stage-number {
+            width: 30px;
+            height: 30px;
+            background: #64748b;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-right: 15px;
+        }
+
+        .stage.active .stage-number { background: #3b82f6; }
+        .stage.planned .stage-number { background: #8b5cf6; }
+        .stage.future .stage-number { background: #ec4899; }
+
+        .stage-title {
+            font-weight: 600;
+            color: #374151;
+            font-size: 1rem;
+        }
+
+        .stage-content {
+            font-size: 0.9rem;
+            color: #6b7280;
+            line-height: 1.5;
+            margin-left: 45px;
+        }
+
+        /* 핵심 성과 지표 */
+        .kpi-section {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .kpi-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="kpi-pattern" width="25" height="25" patternUnits="userSpaceOnUse"><polygon points="12.5,2 23,12.5 12.5,23 2,12.5" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23kpi-pattern)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .kpi-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .kpi-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            background: linear-gradient(45deg, #60a5fa, #a78bfa, #fb7185);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .kpi-item {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .kpi-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #60a5fa;
+            margin-bottom: 10px;
+        }
+
+        .kpi-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 1200px) {
+            .tech-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .kpi-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .timeline-section {
+                padding: 40px 20px;
+            }
+            
+            .timeline-track {
+                flex-direction: column;
+                gap: 40px;
+            }
+            
+            .timeline-track::before {
+                width: 4px;
+                height: 100%;
+                left: 50%;
+                top: 0;
+                transform: translateX(-50%);
+            }
+            
+            .timeline-milestone {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .timeline-label {
+                position: static;
+                transform: none;
+                margin-top: 15px;
+            }
+            
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .header-section {
+                padding: 40px 20px;
+            }
+        }
+
+        /* 인쇄용 최적화 */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .roadmap-container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .tech-card {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #e5e7eb;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="roadmap-container">
+        <!-- 헤더 섹션 -->
+        <div class="header-section">
+            <div class="header-content">
+                <h1 class="main-title">🚀 Palette 기술개발 로드맵</h1>
+                <p class="main-subtitle">AI 기반 패션 큐레이션 플랫폼 핵심 기술 개발 계획</p>
+                <div class="status-badge">6대 핵심 기술 • 단계별 체계적 개발</div>
+            </div>
+        </div>
+
+        <!-- 타임라인 섹션 -->
+        <div class="timeline-section">
+            <div class="timeline-header">
+                <h2 class="timeline-title">개발 타임라인</h2>
+                <p class="timeline-subtitle">단계적이고 체계적인 기술 개발을 통해 Palette의 경쟁력과 사용자 만족도를 지속적으로 향상시킵니다</p>
+            </div>
+            
+            <div class="timeline-track">
+                <div class="timeline-milestone current">
+                    <span>초기</span>
+                    <div class="timeline-label">기본 기술 구축<br>MVP 개발</div>
+                </div>
+                <div class="timeline-milestone planned">
+                    <span>중기</span>
+                    <div class="timeline-label">고도화 기술<br>성능 향상</div>
+                </div>
+                <div class="timeline-milestone future">
+                    <span>장기</span>
+                    <div class="timeline-label">첨단 기술<br>완전 자동화</div>
+                </div>
+            </div>
+
+            <!-- 기술 그리드 -->
+            <div class="tech-grid">
+                <!-- AI 기반 초개인화 스타일리스트 -->
+                <div class="tech-card ai">
+                    <div class="tech-header">
+                        <div class="tech-icon ai">🧠</div>
+                        <div class="tech-title">AI 기반 초개인화<br>스타일리스트 개발</div>
+                    </div>
+                    <div class="tech-description">
+                        머신러닝과 딥러닝 모델을 활용한 개인 맞춤형 스타일 분석 및 추천 시스템
+                    </div>
+                    <div class="development-stages">
+                        <div class="stage active">
+                            <div class="stage-header">
+                                <div class="stage-number">1</div>
+                                <div class="stage-title">기본 ML 모델 구축</div>
+                            </div>
+                            <div class="stage-content">
+                                공개 패션 데이터셋 활용한 기본 추천 모델 개발, 전문가 협력 체계 구축
+                            </div>
+                        </div>
+                        <div class="stage planned">
+                            <div class="stage-header">
+                                <div class="stage-number">2</div>
+                                <div class="stage-title">사용자 데이터 학습</div>
+                            </div>
+                            <div class="stage-content">
+                                실제 사용자 데이터 수집 및 학습을 통한 모델 정확성 향상
+                            </div>
+                        </div>
+                        <div class="stage future">
+                            <div class="stage-header">
+                                <div class="stage-number">3</div>
+                                <div class="stage-title">딥러닝 고도화</div>
+                            </div>
+                            <div class="stage-content">
+                                고급 딥러닝 알고리즘 적용, 실시간 학습 시스템 구축
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 가상 착용 시뮬레이션 기술 -->
+                <div class="tech-card ar">
+                    <div class="tech-header">
+                        <div class="tech-icon ar">👓</div>
+                        <div class="tech-title">가상 착용 시뮬레이션<br>기술 확보</div>
+                    </div>
+                    <div class="tech-description">
+                        AR 기술을 활용한 가상 착용 체험 및 핏 시뮬레이션 시스템
+                    </div>
+                    <div class="development-stages">
+                        <div class="stage active">
+                            <div class="stage-header">
+                                <div class="stage-number">1</div>
+                                <div class="stage-title">2D 이미지 시뮬레이션</div>
+                            </div>
+                            <div class="stage-content">
+                                간단한 2D 이미지 기반 가상 착용 기능 제공
+                            </div>
+                        </div>
+                        <div class="stage planned">
+                            <div class="stage-header">
+                                <div class="stage-number">2</div>
+                                <div class="stage-title">3D 아바타 생성</div>
+                            </div>
+                            <div class="stage-content">
+                                사용자 신체 데이터 기반 3D 아바타 생성 기술 도입
+                            </div>
+                        </div>
+                        <div class="stage future">
+                            <div class="stage-header">
+                                <div class="stage-number">3</div>
+                                <div class="stage-title">고급 AR 기술</div>
+                            </div>
+                            <div class="stage-content">
+                                전문 AR 업체 협력을 통한 실시간 AR 착용 체험 구현
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TPO 맞춤 코디 추천 기술 -->
+                <div class="tech-card tpo">
+                    <div class="tech-header">
+                        <div class="tech-icon tpo">🎯</div>
+                        <div class="tech-title">TPO 맞춤 코디<br>추천 기술 구축</div>
+                    </div>
+                    <div class="tech-description">
+                        상황별 맞춤형 코디네이션 추천 및 사용자 피드백 기반 성능 개선 시스템
+                    </div>
+                    <div class="development-stages">
+                        <div class="stage active">
+                            <div class="stage-header">
+                                <div class="stage-number">1</div>
+                                <div class="stage-title">기본 추천 알고리즘</div>
+                            </div>
+                            <div class="stage-content">
+                                상황별 기본 코디 추천 로직 개발, 초기 데이터 수집
+                            </div>
+                        </div>
+                        <div class="stage planned">
+                            <div class="stage-header">
+                                <div class="stage-number">2</div>
+                                <div class="stage-title">피드백 반영 시스템</div>
+                            </div>
+                            <div class="stage-content">
+                                사용자 피드백 수집 및 추천 정확도 개선 시스템 구축
+                            </div>
+                        </div>
+                        <div class="stage future">
+                            <div class="stage-header">
+                                <div class="stage-number">3</div>
+                                <div class="stage-title">실시간 적응형 추천</div>
+                            </div>
+                            <div class="stage-content">
+                                실시간 상황 인식 및 적응형 추천 알고리즘 완성
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UGC 기반 콘텐츠 플랫폼 -->
+                <div class="tech-card ugc">
+                    <div class="tech-header">
+                        <div class="tech-icon ugc">👥</div>
+                        <div class="tech-title">UGC 기반 콘텐츠<br>플랫폼 구현</div>
+                    </div>
+                    <div class="tech-description">
+                        사용자 생성 콘텐츠 기반 커뮤니티 플랫폼 및 참여 활성화 시스템
+                    </div>
+                    <div class="development-stages">
+                        <div class="stage active">
+                            <div class="stage-header">
+                                <div class="stage-number">1</div>
+                                <div class="stage-title">기본 플랫폼 구축</div>
+                            </div>
+                            <div class="stage-content">
+                                표준 웹/모바일 기술로 기본 커뮤니티 플랫폼 개발
+                            </div>
+                        </div>
+                        <div class="stage planned">
+                            <div class="stage-header">
+                                <div class="stage-number">2</div>
+                                <div class="stage-title">UI/UX 최적화</div>
+                            </div>
+                            <div class="stage-content">
+                                사용자 참여 활성화를 위한 UI/UX 디자인 고도화
+                            </div>
+                        </div>
+                        <div class="stage future">
+                            <div class="stage-header">
+                                <div class="stage-number">3</div>
+                                <div class="stage-title">고급 기능 확장</div>
+                            </div>
+                            <div class="stage-content">
+                                고급 소셜 기능, 보안 강화, 서버 최적화 완성
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 맞춤형 콘텐츠 큐레이션 기술 -->
+                <div class="tech-card curation">
+                    <div class="tech-header">
+                        <div class="tech-icon curation">🔍</div>
+                        <div class="tech-title">맞춤형 콘텐츠<br>큐레이션 기술 개발</div>
+                    </div>
+                    <div class="tech-description">
+                        사용자 행동 분석 기반 개인화된 콘텐츠 필터링 및 추천 시스템
+                    </div>
+                    <div class="development-stages">
+                        <div class="stage active">
+                            <div class="stage-header">
+                                <div class="stage-number">1</div>
+                                <div class="stage-title">기본 필터링 로직</div>
+                            </div>
+                            <div class="stage-content">
+                                기본적인 사용자 프로필 기반 콘텐츠 필터링 시스템
+                            </div>
+                        </div>
+                        <div class="stage planned">
+                            <div class="stage-header">
+                                <div class="stage-number">2</div>
+                                <div class="stage-title">협업 필터링 도입</div>
+                            </div>
+                            <div class="stage-content">
+                                사용자 유사도 기반 협업 필터링 알고리즘 적용
+                            </div>
+                        </div>
+                        <div class="stage future">
+                            <div class="stage-header">
+                                <div class="stage-number">3</div>
+                                <div class="stage-title">고급 행동 분석</div>
+                            </div>
+                            <div class="stage-content">
+                                사용자 행동 패턴 분석을 통한 정교한 개인화 추천
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 효율적 쇼핑 가이드 기능 -->
+                <div class="tech-card shopping">
+                    <div class="tech-header">
+                        <div class="tech-icon shopping">💰</div>
+                        <div class="tech-title">효율적 쇼핑 가이드<br>기능 구축</div>
+                    </div>
+                    <div class="tech-description">
+                        할인 정보 데이터베이스 및 중고거래 플랫폼을 통한 합리적 소비 지원 시스템
+                    </div>
+                    <div class="development-stages">
+                        <div class="stage active">
+                            <div class="stage-header">
+                                <div class="stage-number">1</div>
+                                <div class="stage-title">할인 정보 DB 구축</div>
+                            </div>
+                            <div class="stage-content">
+                                중저가 브랜드 할인 정보 수집 및 실시간 제공 시스템
+                            </div>
+                        </div>
+                        <div class="stage planned">
+                            <div class="stage-header">
+                                <div class="stage-number">2</div>
+                                <div class="stage-title">가격 비교 시스템</div>
+                            </div>
+                            <div class="stage-content">
+                                멀티 브랜드 가격 비교 및 최적 구매 타이밍 추천
+                            </div>
+                        </div>
+                        <div class="stage future">
+                            <div class="stage-header">
+                                <div class="stage-number">3</div>
+                                <div class="stage-title">중고거래 플랫폼</div>
+                            </div>
+                            <div class="stage-content">
+                                전문업체 협력을 통한 안전한 중고거래 시스템 구축
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 핵심 성과 지표 섹션 -->
+        <div class="kpi-section">
+            <div class="kpi-content">
+                <h2 class="kpi-title">🎯 핵심 성과 지표</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-item">
+                        <div class="kpi-number">6</div>
+                        <div class="kpi-label">핵심 기술<br>영역</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-number">3</div>
+                        <div class="kpi-label">단계별<br>개발 계획</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-number">100%</div>
+                        <div class="kpi-label">체계적<br>기술 개발</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

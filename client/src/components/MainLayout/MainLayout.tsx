@@ -41,7 +41,6 @@ import { getSectionColors, SectionColorKey, COMMON_STYLES } from '../../theme';
 import { MENU_ITEMS, AVATAR_SIZE, SectionId, MenuItem as MenuItemTypeDefinition, IPost, COMMUNITY_STATS, CommunityStats as CommunityStatsType } from './MainLayout.types';
 import useScrollSpy from '../../hooks/useScrollSpy';
 import { useTheme, alpha } from '@mui/material/styles';
-import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import CommentIcon from '@mui/icons-material/Comment';
@@ -71,7 +70,7 @@ const popularItems: any[] = []; // Set to empty. Popular Posts section will show
 
 const MainLayout: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Get current location
+  const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(null);
@@ -205,12 +204,11 @@ const MainLayout: React.FC = () => {
     setIsNewLoginModalOpen(false);
   };
   
-  // Determine if the current page is the new MainPage (path === '/')
-  const isNewMainPageActive = location.pathname === '/';
+  const isMainPage = location.pathname === '/'; // 메인 페이지 여부 확인 (OOTD 등 다른 페이지는 false)
 
   // Define placeholder content for non-value sections
   const renderSectionContent = (sectionId: SectionId) => {
-    if (isNewMainPageActive) {
+    if (isMainPage) {
       // For the new main page, content is rendered by <Outlet /> which will be MainPage.tsx
       // So, MainLayout doesn't need to render specific content here for '/'
       return null; 
@@ -407,277 +405,141 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <LayoutContainer sx={{ bgcolor: theme.palette.mode === 'light' ? theme.palette.grey[50] : theme.palette.grey[900] }}>
-      {/* Top bar (Header) - Now a direct child of LayoutContainer */}
+    <LayoutContainer sx={{ 
+      bgcolor: theme.palette.mode === 'light' ? theme.palette.grey[50] : theme.palette.grey[900],
+      display: 'flex', // Make LayoutContainer a flex container
+      flexDirection: 'column',
+      height: '100vh' // Ensure it takes full viewport height
+    }}>
       <TopFixedArea 
         sx={{ 
-          boxShadow: theme.shadows[1], 
-          zIndex: 1100, // Ensure header is above MainPage sections (which have z-index up to 10)
-          bgcolor: isNewMainPageActive ? 'white' : alpha(theme.palette.background.paper, 0.85), // Match new design header bg
-          backdropFilter: isNewMainPageActive ? 'none' : 'blur(8px)',
-          height: isNewMainPageActive ? '4rem' : theme.mixins.toolbar.minHeight,
-          // The new MainPage design explicitly sets header height to 4rem, this should align.
+          // boxShadow: theme.shadows[1], // Temporarily removed to test gap issue
+          zIndex: 1100, 
+          bgcolor: alpha(theme.palette.background.paper, 0.85),
+          backdropFilter: 'blur(8px)',
+          height: theme.mixins.toolbar.minHeight, // Header has fixed height
+          // width: '100%' // Implicitly full width as a block or flex item parent
         }}
       >
-        <Header sx={{ px: isNewMainPageActive ? 1 : {xs:1, sm:2, md:3}, height: '100%', justifyContent: isNewMainPageActive ? 'space-between' : 'initial' }}>
-          {isNewMainPageActive ? (
-            // Header for the new MainPage design
-            <>
-              <IconButton 
-                sx={{ color: 'text.secondary' }} // text-gray-600
-                onClick={handleNewSlideMenuToggle}
-              >
-                <MenuIcon /> {/* Hamburger icon */}
-              </IconButton>
+        <Header sx={{ px: {xs:1, sm:2, md:3}, height: '100%' }}>
+            {/* 모든 페이지에 공통으로 표시될 헤더 내용 */}
+            {/* isNewMainPageActive 관련 분기 로직을 제거하고, 일관된 헤더를 사용 */}
+            <IconButton 
+              sx={{ color: 'text.secondary' }} 
+              onClick={handleNewSlideMenuToggle} // 모든 페이지에서 새 슬라이드 메뉴 토글
+            >
+              <MenuIcon />
+            </IconButton>
 
-              {/* Group for right-side icons ensuring correct order and spacing */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}> 
-                {isAuthenticated ? (
-                  <>
-                    <Tooltip title="새 게시물 작성">
-                      <IconButton 
-                        sx={{ color: 'text.secondary' }} 
-                        onClick={() => navigate('/create-post')}
-                      >
-                        <EditIcon /> {/* Create Post Icon */}
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={user?.nickname || 'User Profile'}>
-                      <IconButton 
-                        sx={{ color: 'text.secondary' }} 
-                        onClick={handleUserMenuOpen}
-                      >
-                        <UserIcon /> {/* Profile icon for logged-in user */}
-                      </IconButton>
-                    </Tooltip>
-                  </>
-                ) : (
-                  <Tooltip title="로그인">
+            {/* 검색 바 등 공통 헤더 요소 (기존 non-MainPage 헤더 로직 참고) */}
+            <Box sx={{ flexGrow: 1, maxWidth: {xs: '100%', sm:'50%', md: '40%'}, minWidth: '180px', mx: 2 }}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Search"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon size={20} style={{ color: theme.palette.text.secondary }}/>
+                    </InputAdornment>
+                  ),
+                  sx: { 
+                    borderRadius: '12px',
+                    bgcolor: alpha(theme.palette.common.black, 0.03),
+                    transition: 'all 0.3s ease',
+                    '&:hover': { bgcolor: alpha(theme.palette.common.black, 0.05) },
+                    '&.Mui-focused': { 
+                      bgcolor: theme.palette.common.white, 
+                      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.25)}`
+                    },
+                    '.MuiOutlinedInput-notchedOutline': { border: 'none' }
+                  }
+                }}
+                size="small"
+              />
+            </Box>
+
+            <HeaderIcons sx={{ gap: {xs:0.5, sm:1, md:2} }}>
+              {isAuthenticated ? (
+                <>
+                  <Tooltip title="새 게시물 작성">
                     <IconButton 
-                      sx={{ color: 'text.secondary' }} // text-gray-600
-                      onClick={handleNewLoginModalOpen}
+                      sx={{ color: 'text.primary' }} 
+                      onClick={() => navigate('/create-post')}
                     >
-                      <LogInIcon /> {/* Login icon for logged-out user */}
+                      <EditIcon size={20}/>
                     </IconButton>
                   </Tooltip>
-                )}
-              </Box>
-            </>
-          ) : (
-            // Existing Header content
-            <>
-              {/* Hamburger for mobile */}
-              <IconButton 
-                sx={{ display: { sm: 'none' }, mr: 1, color: 'text.primary' }}
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              >
-                <MenuIcon />
-              </IconButton>
-
-              {/* Search Bar */}
-              <Box sx={{ flexGrow: 1, maxWidth: {xs: '100%', sm:'50%', md: '40%'}, minWidth: '180px' }}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Search"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon size={20} style={{ color: theme.palette.text.secondary }}/>
-                      </InputAdornment>
-                    ),
-                    sx: { 
-                      borderRadius: '12px',
-                      bgcolor: alpha(theme.palette.common.black, 0.03),
-                      transition: 'all 0.3s ease',
-                      '&:hover': { bgcolor: alpha(theme.palette.common.black, 0.05) },
-                      '&.Mui-focused': { 
-                        bgcolor: theme.palette.common.white, 
-                        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.25)}`
-                      },
-                      '.MuiOutlinedInput-notchedOutline': { border: 'none' }
-                    }
-                  }}
-                  size="small"
-                />
-              </Box>
-
-              {/* Header Icons */}
-              <HeaderIcons sx={{ gap: {xs:0.5, sm:1, md:2} }}>
-                {!isAuthenticated ? (
-                  <>
-                    <Tooltip title="로그인">
-                      <IconButton 
-                        onClick={() => navigate('/login')}
-                        sx={{ 
-                          color: 'primary.main',
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                          '&:hover': {
-                            bgcolor: alpha(theme.palette.primary.main, 0.1),
-                          }
-                        }}
-                        size="small"
+                  <Tooltip title="알림">
+                    <IconButton sx={{ color: 'text.primary' }}>
+                      <NotificationIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={user?.nickname || 'User Profile'}>
+                    <IconButton onClick={handleUserMenuOpen} sx={{ p: 0, ml: 1.5 }}>
+                      <Avatar
+                        alt={user?.nickname || user?.email}
+                        src={user?.photoURL || undefined} // profilePicture 대신 profileImage 사용 (User 모델 확인 필요)
+                        sx={{ width: AVATAR_SIZE.width, height: AVATAR_SIZE.height, bgcolor: 'primary.main' }}
                       >
-                        <LogInIcon size={20} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="회원가입">
-                      <IconButton 
-                        onClick={() => navigate('/register')}
-                        sx={{ 
-                          color: 'primary.main',
-                          bgcolor: alpha(theme.palette.primary.main, 0.1),
-                          '&:hover': {
-                            bgcolor: alpha(theme.palette.primary.main, 0.15),
-                          }
-                        }}
-                        size="small"
-                      >
-                        <RegisterIcon size={20} />
-                      </IconButton>
-                    </Tooltip>
-                  </>
-                ) : (
-                  <>
-                    <Tooltip title="새 게시물 작성">
-                      <IconButton 
-                        onClick={() => navigate('/create-post')}
-                        sx={{ color: 'text.primary' }}
-                      >
-                        <EditIcon size={20}/>
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="알림">
-                      <IconButton sx={{ color: 'text.primary' }}>
-                        <NotificationIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={user?.nickname || 'User Profile'}>
-                      <IconButton onClick={handleUserMenuOpen} sx={{ p: 0, ml: 1.5 }}>
-                        <Avatar
-                          alt={user?.nickname || user?.email}
-                          src={user?.photoURL || user?.profilePicture || undefined}
-                          sx={{ width: AVATAR_SIZE, height: AVATAR_SIZE, bgcolor: 'primary.main' }}
-                        >
-                          {!(user?.photoURL || user?.profilePicture) && (user?.nickname?.[0] || user?.email?.[0])?.toUpperCase()}
-                        </Avatar>
-                      </IconButton>
-                    </Tooltip>
-                  </>
-                )}
-              </HeaderIcons>
-            </>
-          )}
+                        {!(user?.photoURL) && (user?.nickname?.[0] || user?.email?.[0])?.toUpperCase()}
+                      </Avatar>
+                    </IconButton>
+                  </Tooltip>
+                </>
+              ) : (
+                <Tooltip title="로그인">
+                  <IconButton 
+                    sx={{ color: 'text.primary' }}
+                    onClick={handleNewLoginModalOpen} // 로그인 모달 열기
+                  >
+                    <LogInIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </HeaderIcons>
         </Header>
       </TopFixedArea>
 
-      {/* Render new SlideInMenu and LoginModalDialog */}
       <SlideInMenu open={isNewSlideMenuOpen} onClose={handleNewSlideMenuToggle} />
       <LoginModalDialog open={isNewLoginModalOpen} onClose={handleNewLoginModalClose} />
 
-      {/* Overlays for new MainPage design - visibility controlled by menu/modal state */}
-      {isNewMainPageActive && (
-        <>
-          <Box
-            id="menu-overlay-new" // Ensure ID is unique if an old one exists
-            sx={{
-              position: 'fixed',
-              inset: 0,
-              backgroundColor: 'black',
-              opacity: isNewSlideMenuOpen ? 0.5 : 0,
-              visibility: isNewSlideMenuOpen ? 'visible' : 'hidden',
-              transition: 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out',
-              zIndex: 69, // From original CSS for menu overlay
-            }}
-            onClick={handleNewSlideMenuToggle} // Close menu if overlay is clicked
-          />
-          <Box
-            id="login-modal-overlay-new" // Ensure ID is unique
-            sx={{
-              position: 'fixed',
-              inset: 0,
-              backgroundColor: 'black',
-              opacity: isNewLoginModalOpen ? 0.5 : 0,
-              visibility: isNewLoginModalOpen ? 'visible' : 'hidden',
-              transition: 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out',
-              zIndex: 64, // From original CSS for login modal overlay (LoginModalDialog itself is z-index 65)
-            }}
-            onClick={handleNewLoginModalClose} // Close modal if overlay is clicked
-          />
-        </>
-      )}
-      
-      {/* Left Panel (existing mobile menu and desktop sidebar) - conditionally render or adjust if new main page is active */}
-      {!isNewMainPageActive && ( // Example: Hide existing LeftPanel if new main page is active
-        <LeftPanel 
-          open={isMobileMenuOpen} 
-          sx={{ display: { xs: isNewSlideMenuOpen ? 'none' : (isMobileMenuOpen ? 'block' : 'none'), sm: 'block' } }} // Hide if new slide menu is open on mobile too
-        >
-          <Box sx={{ p: 1, display: { xs: 'flex', sm: 'none' }, justifyContent: 'flex-end' }}>
-            <IconButton onClick={() => setIsMobileMenuOpen(false)} sx={{ color: 'text.primary' }}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          <Logo sx={{ my: 2, justifyContent: 'center' }} onClick={() => { handleMenuClick('value'); setIsMobileMenuOpen(false);}}>
-            <DropletIcon size={28} />
-            <Typography variant="h5" component="span" sx={{ fontWeight: 'bold' }}>Palette</Typography>
-          </Logo>
-          <Box sx={{ mb: 2 }}>
-            {MENU_ITEMS.map((item) => (
-              <MenuItemComponent 
-                key={item.id} 
-                isactive={(scrollSpyEnabled ? activeSection === item.id : item.id === 'value').toString()} 
-                onClick={() => { handleMenuClick(item.id); setIsMobileMenuOpen(false); }}
-                sx={{ 
-                  mb: 0.5,
-                  ...( (scrollSpyEnabled ? activeSection === item.id : item.id === 'value') && {
-                    bgcolor: alpha(theme.palette.primary.main, 0.08),
-                    color: theme.palette.primary.main,
-                    '& svg': { color: theme.palette.primary.main }
-                  })
-                }}
-              >
-                {item.icon}
-                <Typography variant="subtitle1" component="span">{item.label}</Typography>
-              </MenuItemComponent>
-            ))}
-          </Box>
-          <Divider sx={{ my: 1 }}/>
-          <Typography variant="overline" color="text.secondary" sx={{ px: 2, mt:1, mb:0.5}}>Community Stats</Typography>
-          <CommunityStats sx={{px:2}}>
-            {COMMUNITY_STATS.map((stat: CommunityStatsType) => (
-              <Box key={stat.label} sx={{textAlign: 'center'}}>
-                <Typography variant="h6" sx={{fontWeight: 600}}>{stat.value}</Typography>
-                <Typography variant="caption" color="text.secondary">{stat.label}</Typography>
-              </Box>
-            ))}
-          </CommunityStats>
-        </LeftPanel>
-      )}
-
-      {/* Main Content Area */}
+      {/* Main Content Area - Adjusted for full-screen section display on main page */}
       <MainContent 
-        sx={{ 
-          pt: isNewMainPageActive ? '0px' : `calc(${theme.mixins.toolbar.minHeight}px + ${theme.spacing(2)})`, 
-          pl: isNewMainPageActive ? '0px' : { sm: `calc(${theme.breakpoints.values.sm}px * 0.22 + ${theme.spacing(2)})`},
-          pr: isNewMainPageActive ? '0px' : { sm: theme.spacing(2) },
-          flexGrow: 1, // Ensure MainContent takes available space
-          width: isNewMainPageActive ? '100%' : `calc(100% - ${isNewMainPageActive || !theme.breakpoints.up('sm') ? 0 : `calc(${theme.breakpoints.values.sm}px * 0.22 + ${theme.spacing(2)})`}px )`, // Adjust width if left panel is hidden
-          height: isNewMainPageActive ? '100vh' : `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
-          overflowY: isNewMainPageActive ? 'hidden' : 'auto', // MainPage handles its own scroll
-          position: isNewMainPageActive ? 'relative' : 'static', 
-          // Transition for smooth change if properties are animated
-          transition: theme.transitions.create(['padding', 'width'], { 
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-        }} 
-        ref={rightPanelRef}
+        sx={{
+          flexGrow: 1, // Allows MainContent to take remaining space
+          minHeight: 0, // Important for flex children to shrink properly if needed
+          // width: '100%', // Implicitly full width as a flex item
+          boxSizing: 'border-box',
+          // Padding for non-main pages is now internal to MainContent, not for header offset
+          paddingTop: !isMainPage ? theme.spacing(2) : 0,
+          paddingBottom: !isMainPage ? theme.spacing(2) : 0,
+          paddingLeft: !isMainPage ? { xs: 2, sm: 3 } : 0,
+          paddingRight: !isMainPage ? { xs: 2, sm: 3 } : 0,
+          
+          overflowY: isMainPage ? 'hidden' : 'auto',
+          backgroundColor: (() => {
+            if (isMainPage && activeSection) {
+              const sectionColorSet = getSectionColors(theme);
+              if (sectionColorSet && sectionColorSet[activeSection as keyof typeof sectionColorSet]) {
+                return sectionColorSet[activeSection as keyof typeof sectionColorSet].background;
+              }
+            }
+            return theme.palette.background.default;
+          })(),
+          
+          // Flex properties to center MainPage (which should be height: 100% of this)
+          display: isMainPage ? 'flex' : 'block',
+          flexDirection: isMainPage ? 'column' : undefined, // Or 'row' if MainPage structure implies
+          alignItems: isMainPage ? 'center' : undefined,
+          justifyContent: isMainPage ? 'center' : undefined,
+          position: 'relative', // Keep for potential absolutely positioned children within Outlet views
+        }}
       >
-        <Outlet /> {/* Render child route components (e.g., MainPage.tsx) here */}
+        <Outlet /> {/* Page content will be centered by MainContent's flex properties on main page */}
       </MainContent>
 
-      {/* User Menu - This existing menu will be used by the new header's UserIcon as well */}
+      {/* User Menu (기존과 동일하게 사용) */}
       <Box sx={{ zIndex: 1301 }}>
         <Menu
           id="user-menu"

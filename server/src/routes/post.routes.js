@@ -6,6 +6,12 @@ const authMiddleware = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
 const { validateCreatePost, validateUpdatePost } = require('../middleware/validators/post.validator');
 
+// @route   GET /api/posts/top-ootd
+// @desc    Get weekly top OOTD posts (최근 7일간 좋아요가 많은 상위 10개)
+// @access  Public
+// 주의: 이 라우트는 /api/posts/:postId 보다 위에 있어야 함 (라우트 우선순위)
+router.get('/top-ootd', postController.getWeeklyTopOotd);
+
 // @route   POST /api/posts
 // @desc    Create a new post
 // @access  Private

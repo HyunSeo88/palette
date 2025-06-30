@@ -229,7 +229,7 @@ async function toggleLikePost(req, res, next) {
 
         res.status(200).json({
             likesCount: updatedPost.likes.length,
-            isLiked: isLiked, // 현재 사용자의 '좋아요' 상태
+            likedByCurrentUser: isLiked,
             likes: updatedPost.likes // (선택적) 업데이트된 전체 좋아요 목록 반환
         });
 
@@ -408,6 +408,103 @@ async function deletePost(req, res, next) {
     }
 }
 
+// @desc    Get weekly top OOTD posts (최근 7일간 좋아요가 많은 상위 10개 게시물)
+// @route   GET /api/posts/top-ootd
+// @access  Public
+async function getWeeklyTopOotd(req, res, next) {
+    try {
+        const { limit = 10 } = req.query;
+        
+        // 현재 시점으로부터 7일 전 날짜 계산
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        // 집계 파이프라인을 사용하여 좋아요 수를 계산하고 정렬
+        const topOotdPosts = await Post.aggregate([
+            {
+                // 조건 필터링: OOTD 타입, published 상태, 7일 이내 작성된 게시물
+                $match: {
+                    postType: 'ootd',
+                    status: 'published',
+                    createdAt: { $gte: sevenDaysAgo }
+                }
+            },
+            {
+                // 좋아요 수 계산 및 추가 필드 생성
+                $addFields: {
+                    likesCount: { $size: { $ifNull: ['$likes', []] } }
+                }
+            },
+            {
+                // 정렬: 좋아요 수 내림차순, 같으면 작성일 오름차순 (먼저 올린 것 우선)
+                $sort: {
+                    likesCount: -1,
+                    createdAt: 1
+                }
+            },
+            {
+                // 상위 limit개만 선택
+                $limit: parseInt(limit)
+            },
+            {
+                // 사용자 정보 조인
+                $lookup: {
+                    from: 'users', // User 모델의 컬렉션 이름 (일반적으로 소문자 복수형)
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'user',
+                    // 필요한 필드만 선택
+                    pipeline: [
+                        {
+                            $project: {
+                                nickname: 1,
+                                profileImage: 1,
+                                email: 1
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                // user 배열을 객체로 변환 (lookup은 배열을 반환하므로)
+                $unwind: '$user'
+            },
+            {
+                // 응답에 포함할 필드 선택
+                $project: {
+                    _id: 1,
+                    user: 1,
+                    postType: 1,
+                    title: 1,
+                    content: 1,
+                    images: 1,
+                    tags: 1,
+                    likes: 1,
+                    likesCount: 1,
+                    viewCount: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                    additionalFields: 1,
+                    isPinned: 1
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            posts: topOotdPosts,
+            totalPosts: topOotdPosts.length,
+            dateRange: {
+                from: sevenDaysAgo.toISOString(),
+                to: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching weekly top OOTD posts:', error);
+        next(error);
+    }
+}
+
 module.exports = {
     createPost,
     getPosts,
@@ -415,5 +512,6 @@ module.exports = {
     toggleLikePost,
     updatePost,
     deletePost,
+    getWeeklyTopOotd, // 새로운 함수 추가
     // 다른 컨트롤러 함수들 추가 예정
 }; 
