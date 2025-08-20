@@ -1,13 +1,14 @@
 import { Theme } from '@mui/material/styles';
+import { Home, Camera, Users, Star, Grid as GridIcon } from 'react-feather';
 
 /** Available section identifiers for the main layout */
-export type SectionId = 'value' | 'hot-posts' | 'ootd' | 'voting' | 'events';
+export type SectionId = 'value' | 'ootd' | 'community' | 'events';
 
 /** Color mapping for sections using theme tokens */
 export const SECTION_COLORS = {
   value: 'primary.main',
-  'hot-posts': 'primary.light',
   ootd: 'secondary.light',
+  community: 'info.main',
   voting: 'info.light',
   events: 'success.light',
 } as const;
@@ -18,10 +19,8 @@ export interface MenuItem {
   id: SectionId;
   /** Display label for the menu item */
   label: string;
-  /** Theme color token for the menu item */
-  color: string;
   /** Description of the menu item's purpose */
-  description: string;
+  description?: string;
   /** Icon representation for the menu item */
   icon: React.ReactNode;
 }
@@ -38,38 +37,27 @@ export interface CommunityStats {
 export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'value',
-    label: 'VALUES',
-    color: '#1976D2',
-    description: '팔레트의 핵심 가치',
-    icon: '💫'
-  },
-  {
-    id: 'hot-posts',
-    label: 'TRENDING',
-    color: '#C62828',
-    description: '실시간 인기 게시물',
-    icon: '🔥'
+    label: 'Value',
+    description: '밸류 컨텐츠',
+    icon: <GridIcon size={20} />,
   },
   {
     id: 'ootd',
-    label: 'STYLE',
-    color: '#F57F17',
+    label: 'OOTD',
     description: '오늘의 코디 모음',
-    icon: '👕'
+    icon: <Camera size={20} />,
   },
   {
-    id: 'voting',
-    label: 'VOTE',
-    color: '#455A64',
-    description: '스타일 투표 진행중',
-    icon: '🗳️'
+    id: 'community',
+    label: 'Community',
+    description: '커뮤니티 게시판',
+    icon: <Users size={20} />,
   },
   {
     id: 'events',
-    label: 'EVENTS',
-    color: '#558B2F',
+    label: 'Events',
     description: '진행중인 이벤트',
-    icon: '📅'
+    icon: <Star size={20} />,
   },
 ];
 
@@ -90,4 +78,29 @@ export const INTERSECTION_OBSERVER_CONFIG = {
 export const AVATAR_SIZE = {
   width: 32,
   height: 32,
-} as const; 
+} as const;
+
+export interface IUserSummary {
+  _id: string;
+  username: string;
+  profileImageUrl?: string;
+}
+
+export interface IPost {
+  _id: string;
+  author: IUserSummary;
+  title?: string;
+  content: string;
+  images: string[];
+  tags?: string[];
+  postType: 'ootd' | 'fashion' | 'free';
+  likes: string[];
+  commentsCount: number;
+  views?: number;
+  createdAt: string;
+  updatedAt: string;
+  additionalFields?: {
+    style?: string;
+    season?: string;
+  };
+} 

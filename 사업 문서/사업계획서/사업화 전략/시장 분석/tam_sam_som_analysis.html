@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palette TAM-SAM-SOM 시장 분석</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: white;
+            color: #2d3748;
+            line-height: 1.6;
+            padding: 30px 20px;
+        }
+
+        .analysis-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 0;
+            border-bottom: 3px solid #3b82f6;
+        }
+
+        .main-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 15px;
+        }
+
+        .main-subtitle {
+            font-size: 1.3rem;
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+        .content-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 50px;
+            align-items: center;
+        }
+
+        /* 동심원 그래프 */
+        .chart-section {
+            position: relative;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .concentric-circles {
+            position: relative;
+            width: 450px;
+            height: 450px;
+        }
+
+        .market-circle {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .market-circle:hover {
+            transform: scale(1.05);
+        }
+
+        .tam-circle {
+            width: 450px;
+            height: 450px;
+            background: rgba(59, 130, 246, 0.3);
+            border: 3px solid #3b82f6;
+            top: 0;
+            left: 0;
+        }
+
+        .sam-circle {
+            width: 220px;
+            height: 220px;
+            background: rgba(59, 130, 246, 0.6);
+            border: 3px solid #2563eb;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .som-circle {
+            width: 80px;
+            height: 80px;
+            background: #1e40af;
+            border: 3px solid #1e3a8a;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+        }
+
+        .circle-label {
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .sam-circle .circle-label {
+            font-size: 1rem;
+        }
+
+        .som-circle .circle-label {
+            font-size: 0.7rem;
+        }
+
+        /* 정보 섹션 */
+        .info-section {
+            padding: 20px 0;
+        }
+
+        .market-info {
+            margin-bottom: 40px;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 6px solid;
+            background: #f8fafc;
+        }
+
+        .tam-info {
+            border-left-color: #3b82f6;
+        }
+
+        .sam-info {
+            border-left-color: #2563eb;
+        }
+
+        .som-info {
+            border-left-color: #1e40af;
+        }
+
+        .market-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1e40af;
+        }
+
+        .market-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .market-description {
+            font-size: 1rem;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        /* 가정사항 섹션 */
+        .assumptions-section {
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+
+        .assumptions-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .assumptions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .assumption-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .assumption-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+        }
+
+        .assumption-content {
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .calculation-box {
+            background: #e0f2fe;
+            border: 2px solid #0284c7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #0c4a6e;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .content-section {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            
+            .chart-section {
+                height: 400px;
+            }
+            
+            .concentric-circles {
+                width: 350px;
+                height: 350px;
+            }
+            
+            .tam-circle {
+                width: 350px;
+                height: 350px;
+            }
+            
+            .sam-circle {
+                width: 170px;
+                height: 170px;
+            }
+            
+            .som-circle {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .assumptions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-title {
+                font-size: 2.2rem;
+            }
+        }
+
+        /* 인쇄 최적화 */
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .analysis-container {
+                max-width: none;
+            }
+            
+            .content-section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="analysis-container">
+        <!-- 헤더 -->
+        <div class="header-section">
+            <h1 class="main-title">TAM-SAM-SOM 시장 분석</h1>
+            <p class="main-subtitle">Palette AI 패션 큐레이션 플랫폼</p>
+        </div>
+
+        <!-- 메인 콘텐츠 -->
+        <div class="content-section">
+            <!-- 동심원 그래프 -->
+            <div class="chart-section">
+                <div class="concentric-circles">
+                    <div class="market-circle tam-circle">
+                        <div class="circle-label">TAM<br>50.9조원</div>
+                    </div>
+                    <div class="market-circle sam-circle">
+                        <div class="circle-label">SAM<br>2.6조원</div>
+                    </div>
+                    <div class="market-circle som-circle">
+                        <div class="circle-label">SOM<br>789억원</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 시장 정보 -->
+            <div class="info-section">
+                <div class="market-info tam-info">
+                    <div class="market-title">TAM (Total Addressable Market)</div>
+                    <div class="market-value">50조 8,886억원</div>
+                    <div class="market-description">
+                        2025년 한국 패션시장 전체 규모 (온/오프라인 포함)<br>
+                        2023년 대비 2.7% 성장 전망
+                    </div>
+                </div>
+
+                <div class="market-info sam-info">
+                    <div class="market-title">SAM (Serviceable Addressable Market)</div>
+                    <div class="market-value">2조 6,321억원</div>
+                    <div class="market-description">
+                        20대 남성의 온라인 패션 소비 시장<br>
+                        TAM의 약 5.2%에 해당하는 현실적 공략 가능 시장
+                    </div>
+                </div>
+
+                <div class="market-info som-info">
+                    <div class="market-title">SOM (Serviceable Obtainable Market)</div>
+                    <div class="market-value">789억원</div>
+                    <div class="market-description">
+                        초기 3년간 현실적 확보 목표 시장<br>
+                        SAM의 3% 수준으로 보수적 접근
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 가정사항 및 계산 근거 -->
+        <div class="assumptions-section">
+            <h2 class="assumptions-title">📊 시장 규모 산정 근거 및 가정사항</h2>
+            
+            <div class="assumptions-grid">
+                <div class="assumption-card">
+                    <div class="assumption-label">TAM 산정 근거</div>
+                    <div class="assumption-content">
+                        • 2025년 한국 패션시장 전망<br>
+                        • 온라인 + 오프라인 통합 시장<br>
+                        • 한국섬유산업연합회 데이터 기준
+                        <div class="calculation-box">
+                            2025년 전망: 50조 8,886억원<br>
+                            (2023년 48조 4,167억원 → 2.7% 성장)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="assumption-card">
+                    <div class="assumption-label">SAM 계산 방식</div>
+                    <div class="assumption-content">
+                        • 20대 남성 인구: 304만 6,155명<br>
+                        • 연간 패션 지출: 132만원/인<br>
+                        • 온라인 구매 비중: 65.5%
+                        <div class="calculation-box">
+                            SAM = 304만명 × 132만원 × 65.5%<br>
+                            = 2조 6,321억원
+                        </div>
+                    </div>
+                </div>
+
+                <div class="assumption-card">
+                    <div class="assumption-label">SOM 추정 논리</div>
+                    <div class="assumption-content">
+                        • 신규 플랫폼 초기 점유율: 3%<br>
+                        • 무신사 등 기존 강자 존재<br>
+                        • 3년간 점진적 성장 목표
+                        <div class="calculation-box">
+                            SOM = SAM × 3%<br>
+                            = 2조 6,321억원 × 3% = 789억원
+                        </div>
+                    </div>
+                </div>
+
+                <div class="assumption-card">
+                    <div class="assumption-label">경쟁 환경 분석</div>
+                    <div class="assumption-content">
+                        • 무신사: 20대 남성 높은 선호도<br>
+                        • 지그재그, 29CM 등 다수 경쟁자<br>
+                        • AI 차별화를 통한 시장 진입 전략
+                        <div class="calculation-box">
+                            목표: 3년 내 3% 점유율 달성<br>
+                            차별화: AI 개인화 추천 기술
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

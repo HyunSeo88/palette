@@ -16,11 +16,12 @@ const STYLE_CONSTANTS = {
   PANEL_WIDTH: '280px',
   BREAKPOINT_MOBILE: '600px',
   COLORS: {
-    PRIMARY: '#2D3748',
+    PRIMARY: '#1976d2', // MUI primary blue
     BORDER: 'rgba(0,0,0,0.1)',
     SCROLLBAR_TRACK: '#f1f1f1',
     SCROLLBAR_THUMB: '#888',
     WHITE: '#fff',
+    LIGHT_BG: '#F0F8FF', // Light blue background matching theme.ts
   },
   SPACING: {
     XS: '8px',
@@ -29,8 +30,9 @@ const STYLE_CONSTANTS = {
     LG: '48px',
   },
   SHADOWS: {
-    HEADER: '0 2px 4px rgba(0,0,0,0.1)',
-    CONTENT: '0 4px 12px rgba(0,0,0,0.1)',
+    HEADER: '0 2px 8px rgba(0,0,0,0.05)',
+    CONTENT: '0 4px 12px rgba(0,0,0,0.05)',
+    CARD: '0 4px 12px rgba(0, 0, 0, 0.05)', // Matches Card shadow from theme.ts
   },
 } as const;
 
@@ -59,7 +61,6 @@ interface LeftPanelProps {
 
 interface MenuItemProps {
   isactive: string;
-  color: string;
 }
 
 interface MenuIconProps {
@@ -71,6 +72,7 @@ export const LayoutContainer = styled(Box)({
   flexDirection: 'column',
   height: '100vh',
   overflow: 'hidden',
+  backgroundColor: STYLE_CONSTANTS.COLORS.LIGHT_BG, // Use the light blue background from theme.ts
 });
 
 export const TopFixedArea = styled(Box)(({ theme }) => ({
@@ -78,94 +80,108 @@ export const TopFixedArea = styled(Box)(({ theme }) => ({
   top: 0,
   left: 0,
   right: 0,
-  zIndex: 1000,
-  backgroundColor: theme.palette.background.paper,
-  boxShadow: theme.shadows[1],
+  zIndex: 1200,
+  backgroundColor: alpha(theme.palette.background.paper, 0.85),
+  borderBottom: `1px solid ${theme.palette.grey[100]}`,
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+  backdropFilter: 'blur(20px)',
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
 }));
 
-export const Header = styled(Box)({
+export const Header = styled(Box)(({ theme }) => ({
   ...flexCenter,
   justifyContent: 'space-between',
-  padding: '12px 24px',
-  height: '64px',
-});
-
-export const Logo = styled(Box)({
-  ...flexCenter,
-  gap: '8px',
-  fontSize: '24px',
-  fontWeight: 600,
-  cursor: 'pointer',
-  color: '#2D3748',
-});
-
-export const MainContent = styled(Box)({
-  display: 'flex',
-  height: 'calc(100vh - 64px)',
-  marginTop: '64px',
-});
-
-export const LeftPanel = styled(Box)<LeftPanelProps>(({ open, theme }) => ({
-  width: '280px',
-  flexShrink: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  borderRight: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
-  transition: 'transform 0.3s ease',
-  [`@media (max-width: ${theme.breakpoints.values.sm}px)`]: {
-    position: 'fixed',
-    top: '64px',
-    bottom: 0,
-    transform: open ? 'translateX(0)' : 'translateX(-100%)',
-    zIndex: 1000,
+  padding: '16px 32px',
+  height: '72px',
+  maxWidth: '1400px',
+  margin: '0 auto',
+  width: '100%',
+  
+  [theme.breakpoints.down('sm')]: {
+    padding: '12px 16px',
+    height: '64px',
   },
 }));
 
-export const MenuItem = styled(Box)<MenuItemProps>(({ theme, isactive, color }) => ({
+export const Logo = styled(Box)(({ theme }) => ({
+  ...flexCenter,
+  gap: '12px',
+  fontSize: '28px',
+  fontWeight: 700,
+  cursor: 'pointer',
+  color: theme.palette.primary.main,
+  letterSpacing: '-0.02em',
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  
+  '&:hover': {
+    transform: 'scale(1.02)',
+  },
+  
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '24px',
+    gap: '8px',
+  },
+}));
+
+export const MainContent = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  height: 'calc(100vh - 72px)',
+  marginTop: '72px',
+  
+  [theme.breakpoints.down('sm')]: {
+    height: 'calc(100vh - 64px)',
+    marginTop: '64px',
+  },
+}));
+
+export const LeftPanel = styled(Box)<LeftPanelProps>(({ open, theme }) => ({
+  width: STYLE_CONSTANTS.PANEL_WIDTH,
+  flexShrink: 0,
+  backgroundColor: theme.palette.background.paper, // White paper background
+  borderRight: `1px solid ${theme.palette.divider}`,
+  padding: STYLE_CONSTANTS.SPACING.SM,
+  display: 'flex',
+  flexDirection: 'column',
+  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+  boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.03)', // Subtle shadow on the right edge
+  [`@media (max-width: ${theme.breakpoints.values.sm}px)`]: {
+    position: 'fixed',
+    top: STYLE_CONSTANTS.HEADER_HEIGHT,
+    bottom: 0,
+    transform: open ? 'translateX(0)' : 'translateX(-100%)',
+    zIndex: 1000,
+    boxShadow: theme.shadows[3],
+  },
+}));
+
+export const MenuItem = styled(Box)<MenuItemProps>(({ theme, isactive }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1.5),
   padding: theme.spacing(1.5, 2),
   cursor: 'pointer',
-  borderRadius: theme.shape.borderRadius,
-  transition: 'all 0.3s ease',
-  position: 'relative',
-  overflow: 'hidden',
-
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: '4px',
-    backgroundColor: color,
-    opacity: isactive === 'true' ? 1 : 0,
-    transition: 'opacity 0.3s ease',
-  },
+  borderRadius: '12px',
+  transition: 'background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.2s ease',
+  marginBottom: theme.spacing(1),
+  color: theme.palette.text.secondary,
+  fontWeight: 500,
 
   '& .MuiTypography-root': {
     transition: 'color 0.3s ease',
-  },
-
-  '& .MuiTypography-body1': {
-    color: isactive === 'true' ? color : theme.palette.text.primary,
-    fontWeight: isactive === 'true' ? 600 : 400,
+    fontWeight: 'inherit',
   },
 
   '&:hover': {
-    backgroundColor: alpha(color, 0.08),
-    '& .MuiTypography-body1': {
-      color: color,
-    },
-    '&::before': {
-      opacity: 0.5,
-    },
+    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+    color: theme.palette.primary.main,
+    transform: 'translateX(4px)', // Subtle movement on hover
   },
 
   ...(isactive === 'true' && {
-    backgroundColor: alpha(color, 0.08),
+    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+    color: theme.palette.primary.main,
+    fontWeight: 600,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)', // Subtle shadow for active items
   }),
 }));
 
@@ -190,13 +206,14 @@ export const CommunityStats = styled(Box)({
   marginBottom: STYLE_CONSTANTS.SPACING.XS,
 });
 
-export const RightPanel = styled(Box)({
+export const RightPanel = styled(Box)(({ theme }) => ({
   flex: 1,
   overflow: 'auto',
   scrollBehavior: 'smooth',
-  scrollSnapType: 'y mandatory',
   ...scrollbarStyle,
-});
+  padding: STYLE_CONSTANTS.SPACING.MD,
+  backgroundColor: alpha(theme.palette.background.default, 0.5), // Lighter than the LayoutContainer background
+}));
 
 export const Section = styled(Box)({
   minHeight: `calc(100vh - ${STYLE_CONSTANTS.HEADER_HEIGHT})`,

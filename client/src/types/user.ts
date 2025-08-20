@@ -21,6 +21,7 @@ export interface UserBase {
   colorVisionType: ColorVisionType;
   bio?: string;
   photoURL?: string; // 프로필 이미지 URL (기존: profileImage)
+  profilePicture?: string; // Profile picture URL, potentially sent by specific endpoints like mypage
   provider: 'email' | 'google' | 'kakao'; // 최초 가입 방식
   socialId?: string; // Deprecated: Use socialLinks instead. Represents socialId if initial signup was social.
   socialLinks: SocialLink[]; // 연결된 소셜 계정 목록
@@ -62,4 +63,36 @@ export interface ProfileUpdateData {
   newPassword?: string;
   confirmNewPassword?: string;
   preferences?: Partial<UserPreferences>;
+}
+
+// --- MyPage Data Types ---
+import { IPost } from '../components/MainLayout/MainLayout.types'; // IPost 임포트 경로 확인 필요, Domains 구조에 맞게 변경될 수 있음
+
+// 사용자 프로필 정보 (기존 User 타입 활용)
+export type IUserProfile = User; // 백엔드 userProfile 필드가 User 모델 기반이므로 User 타입 재사용
+                               // 필요시 photoURL -> profileImage 매핑 등 고려
+
+// 사용자 활동 요약
+export interface IActivitySummary {
+  totalPosts: number;
+  totalComments: number;
+  postsByType: { [key: string]: number }; // 예: { ootd: 10, fashion: 5 }
+}
+
+// 마이페이지에서 사용될 게시물 타입 (IPost 활용)
+export type IUserPost = IPost;
+
+// 사용자 게시물 목록 (페이지네이션 포함)
+export interface IUserPostList {
+  posts: IUserPost[];
+  totalPages: number;
+  currentPage: number;
+  totalPosts: number;
+}
+
+// 마이페이지 전체 데이터
+export interface IMyPageData {
+  userProfile: IUserProfile;
+  activitySummary: IActivitySummary;
+  userPosts: IUserPostList;
 } 
