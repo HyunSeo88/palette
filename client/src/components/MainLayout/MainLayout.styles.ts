@@ -80,33 +80,59 @@ export const TopFixedArea = styled(Box)(({ theme }) => ({
   top: 0,
   left: 0,
   right: 0,
-  zIndex: 1000,
-  backgroundColor: theme.palette.background.paper, // White paper background
-  boxShadow: STYLE_CONSTANTS.SHADOWS.HEADER,
-  backdropFilter: 'blur(10px)', // Glass effect
+  zIndex: 1200,
+  backgroundColor: alpha(theme.palette.background.paper, 0.85),
+  borderBottom: `1px solid ${theme.palette.grey[100]}`,
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+  backdropFilter: 'blur(20px)',
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
 }));
 
-export const Header = styled(Box)({
+export const Header = styled(Box)(({ theme }) => ({
   ...flexCenter,
   justifyContent: 'space-between',
-  padding: '12px 24px',
-  height: '64px',
-});
+  padding: '16px 32px',
+  height: '72px',
+  maxWidth: '1400px',
+  margin: '0 auto',
+  width: '100%',
+  
+  [theme.breakpoints.down('sm')]: {
+    padding: '12px 16px',
+    height: '64px',
+  },
+}));
 
-export const Logo = styled(Box)({
+export const Logo = styled(Box)(({ theme }) => ({
   ...flexCenter,
-  gap: '8px',
-  fontSize: '24px',
-  fontWeight: 600,
+  gap: '12px',
+  fontSize: '28px',
+  fontWeight: 700,
   cursor: 'pointer',
-  color: STYLE_CONSTANTS.COLORS.PRIMARY, // Using primary color
-});
+  color: theme.palette.primary.main,
+  letterSpacing: '-0.02em',
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  
+  '&:hover': {
+    transform: 'scale(1.02)',
+  },
+  
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '24px',
+    gap: '8px',
+  },
+}));
 
-export const MainContent = styled(Box)({
+export const MainContent = styled(Box)(({ theme }) => ({
   display: 'flex',
-  height: 'calc(100vh - 64px)',
-  marginTop: '64px',
-});
+  height: 'calc(100vh - 72px)',
+  marginTop: '72px',
+  
+  [theme.breakpoints.down('sm')]: {
+    height: 'calc(100vh - 64px)',
+    marginTop: '64px',
+  },
+}));
 
 export const LeftPanel = styled(Box)<LeftPanelProps>(({ open, theme }) => ({
   width: STYLE_CONSTANTS.PANEL_WIDTH,

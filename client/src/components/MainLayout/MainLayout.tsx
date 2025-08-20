@@ -252,21 +252,17 @@ const MainLayout: React.FC = () => {
             {ootdLoading && <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}><CircularProgress /></Box>}
             {ootdError && <Alert severity="error" sx={{ my: 3 }}>Error fetching OOTD posts: {ootdError}</Alert>}
             {!ootdLoading && !ootdError && (
-              <Grid container spacing={3}>
+              <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
                 {ootdPosts.length > 0 ? ootdPosts.map((post) => (
-                  <Grid item xs={12} sm={6} md={4} key={post._id}>
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={post._id}>
                     <Card 
                       sx={{ 
                         display: 'flex', 
                         flexDirection: 'column', 
-                        height: '100%', 
-                        borderRadius: 4, 
-                        boxShadow: '0 8px 16px rgba(0,0,0,0.08)',
-                        overflow: 'visible', 
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-5px)',
-                          boxShadow: '0 12px 24px rgba(0,0,0,0.12)',
+                        height: '100%',
+                        cursor: 'pointer',
+                        '&:hover .post-image': {
+                          transform: 'scale(1.02)',
                         }
                       }}
                     >
@@ -274,99 +270,156 @@ const MainLayout: React.FC = () => {
                         <Box sx={{ position: 'relative' }}>
                           <CardMedia
                             component="img"
+                            className="post-image"
                             sx={{ 
-                              height: 280, 
+                              height: { xs: 240, sm: 280, md: 320 }, 
                               objectFit: 'cover',
-                              borderRadius: '16px 16px 0 0',
+                              transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                             }}
                             image={post.images[0]}
                             alt={post.content || 'OOTD image'}
                           />
                           <Box sx={{
                             position: 'absolute',
-                            top: 12,
-                            left: 12,
+                            top: 16,
+                            left: 16,
                             display: 'flex',
                             alignItems: 'center',
-                            bgcolor: alpha(theme.palette.common.black, 0.5),
+                            bgcolor: alpha(theme.palette.common.black, 0.7),
                             color: 'white',
-                            px: 1.5, 
-                            py: 0.5,  
-                            borderRadius: 2, 
+                            px: 2, 
+                            py: 1,  
+                            borderRadius: '20px',
+                            backdropFilter: 'blur(8px)',
                           }}>
                             {post.author?.profileImageUrl && (
                               <Avatar 
                                 src={post.author.profileImageUrl} 
                                 alt={post.author.username} 
-                                sx={{ width: 24, height: 24, mr: 0.75 }}
+                                sx={{ width: 20, height: 20, mr: 1 }}
                               />
                             )}
-                            <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                               {post.author?.username || 'User'}
                             </Typography>
                           </Box>
                           <Box sx={{
                             position: 'absolute',
-                            top: 12,
-                            right: 12,
+                            top: 16,
+                            right: 16,
                             display: 'flex',
                             alignItems: 'center',
-                            bgcolor: alpha(theme.palette.warning.light, 0.85), 
-                            color: theme.palette.warning.contrastText,
-                            px: 1,
-                            py: 0.25,
-                            borderRadius: '12px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                            bgcolor: alpha(theme.palette.background.paper, 0.9), 
+                            color: theme.palette.primary.main,
+                            px: 1.5,
+                            py: 0.75,
+                            borderRadius: '16px',
+                            backdropFilter: 'blur(8px)',
+                            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                           }}>
-                            <StarIcon size={14} style={{ marginRight: 4, fill: theme.palette.warning.contrastText }}/>
-                            <Typography variant="caption" sx={{ fontWeight: 'bold', lineHeight: '1.2' }}> 
+                            <HeartIcon size={14} style={{ marginRight: 4, fill: 'currentColor' }}/>
+                            <Typography variant="caption" sx={{ fontWeight: 'bold', lineHeight: '1.2', fontSize: '0.75rem' }}> 
                               {post.likes?.length || 0}
                             </Typography>
                           </Box>
                         </Box>
                       )}
-                      <CardContent sx={{ pt: 2, pb: 1, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                      <CardContent sx={{ p: { xs: 2, sm: 3 }, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                         <Typography 
-                          variant="subtitle1" 
+                          variant="body1" 
                           component="div" 
-                          gutterBottom 
                           sx={{ 
-                            fontWeight: 600, 
-                            lineHeight: 1.3,
+                            fontWeight: 500, 
+                            lineHeight: 1.5,
                             color: theme.palette.text.primary,
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical',
-                            minHeight: 'calc(1.3em * 2)'
+                            minHeight: 'calc(1.5em * 2)',
+                            mb: 2,
                           }}
                         >
                           {post.content || 'No caption'}
                         </Typography>
                       </CardContent>
-                      <CardActions disableSpacing sx={{ pt: 0, pb: 1.5, px: 1.5, mt: 'auto', justifyContent: 'space-around' }}>
-                        <Tooltip title="Like">
-                          <IconButton aria-label="add to favorites" size="small" sx={{ '&:hover': { color: theme.palette.error.main }}}>
-                            <HeartIcon size={18} /> 
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Comment">
-                          <IconButton aria-label="comment" size="small" sx={{ '&:hover': { color: theme.palette.primary.main }}}>
-                            <MessageIcon size={18} />
-                            <Typography variant="caption" sx={{ ml: 0.5 }}>{post.commentsCount || 0}</Typography>
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Share">
-                          <IconButton aria-label="share" size="small" sx={{ '&:hover': { color: theme.palette.info.main }}}>
-                            <ShareIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Bookmark">
-                          <IconButton aria-label="bookmark" size="small" sx={{ '&:hover': { color: theme.palette.secondary.main }}}>
+                      <CardActions 
+                        disableSpacing 
+                        sx={{ 
+                          p: { xs: 2, sm: 3 }, 
+                          pt: 0,
+                          mt: 'auto', 
+                          justifyContent: 'space-between',
+                          borderTop: `1px solid ${theme.palette.grey[100]}`,
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <IconButton 
+                              size="small" 
+                              sx={{ 
+                                color: theme.palette.grey[600],
+                                '&:hover': { 
+                                  color: theme.palette.error.main,
+                                  backgroundColor: alpha(theme.palette.error.main, 0.08),
+                                },
+                                mr: 0.5
+                              }}
+                            >
+                              <HeartIcon size={18} /> 
+                            </IconButton>
+                            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                              {post.likes?.length || 0}
+                            </Typography>
+                          </Box>
+                          
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <IconButton 
+                              size="small" 
+                              sx={{ 
+                                color: theme.palette.grey[600],
+                                '&:hover': { 
+                                  color: theme.palette.primary.main,
+                                  backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                                },
+                                mr: 0.5
+                              }}
+                            >
+                              <MessageIcon size={18} />
+                            </IconButton>
+                            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                              {post.commentsCount || 0}
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <IconButton 
+                            size="small" 
+                            sx={{ 
+                              color: theme.palette.grey[600],
+                              '&:hover': { 
+                                color: theme.palette.secondary.main,
+                                backgroundColor: alpha(theme.palette.secondary.main, 0.08),
+                              }
+                            }}
+                          >
                             <BookmarkIcon size={18} />
                           </IconButton>
-                        </Tooltip>
+                          <IconButton 
+                            size="small" 
+                            sx={{ 
+                              color: theme.palette.grey[600],
+                              '&:hover': { 
+                                color: theme.palette.info.main,
+                                backgroundColor: alpha(theme.palette.info.main, 0.08),
+                              }
+                            }}
+                          >
+                            <ShareIcon />
+                          </IconButton>
+                        </Box>
                       </CardActions>
                     </Card>
                   </Grid>
@@ -417,70 +470,164 @@ const MainLayout: React.FC = () => {
           zIndex: 1100, 
           bgcolor: alpha(theme.palette.background.paper, 0.85),
           backdropFilter: 'blur(8px)',
-          height: theme.mixins.toolbar.minHeight, // Header has fixed height
+          height: { xs: '64px', sm: '72px' }, // Header has responsive height
           // width: '100%' // Implicitly full width as a block or flex item parent
         }}
       >
-        <Header sx={{ px: {xs:1, sm:2, md:3}, height: '100%' }}>
+        <Header>
             {/* 모든 페이지에 공통으로 표시될 헤더 내용 */}
             {/* isNewMainPageActive 관련 분기 로직을 제거하고, 일관된 헤더를 사용 */}
-            <IconButton 
-              sx={{ color: 'text.secondary' }} 
-              onClick={handleNewSlideMenuToggle} // 모든 페이지에서 새 슬라이드 메뉴 토글
-            >
-              <MenuIcon />
-            </IconButton>
+            {/* 로고 섹션 */}
+            <Logo onClick={() => navigate('/')}>
+              <DropletIcon size={32} />
+              <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: '-0.02em' }}>
+                Palette
+              </Typography>
+            </Logo>
 
-            {/* 검색 바 등 공통 헤더 요소 (기존 non-MainPage 헤더 로직 참고) */}
-            <Box sx={{ flexGrow: 1, maxWidth: {xs: '100%', sm:'50%', md: '40%'}, minWidth: '180px', mx: 2 }}>
+            {/* 개선된 검색 바 */}
+            <Box sx={{ 
+              flexGrow: 1, 
+              maxWidth: { xs: '60%', sm: '400px', md: '500px' }, 
+              mx: { xs: 2, md: 4 } 
+            }}>
               <TextField
                 fullWidth
                 variant="outlined"
-                placeholder="Search"
+                placeholder="패션 아이템, 스타일을 검색하세요..."
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon size={20} style={{ color: theme.palette.text.secondary }}/>
+                      <SearchIcon size={20} style={{ color: theme.palette.grey[400] }}/>
                     </InputAdornment>
                   ),
-                  sx: { 
-                    borderRadius: '12px',
-                    bgcolor: alpha(theme.palette.common.black, 0.03),
-                    transition: 'all 0.3s ease',
-                    '&:hover': { bgcolor: alpha(theme.palette.common.black, 0.05) },
-                    '&.Mui-focused': { 
-                      bgcolor: theme.palette.common.white, 
-                      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.25)}`
-                    },
-                    '.MuiOutlinedInput-notchedOutline': { border: 'none' }
-                  }
                 }}
                 size="small"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '24px',
+                    backgroundColor: theme.palette.grey[50],
+                    fontSize: '0.875rem',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    
+                    '& fieldset': {
+                      borderColor: 'transparent',
+                    },
+                    '&:hover': {
+                      backgroundColor: theme.palette.grey[100],
+                      '& fieldset': {
+                        borderColor: theme.palette.grey[200],
+                      },
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: theme.palette.background.paper,
+                      boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`,
+                      '& fieldset': {
+                        borderColor: theme.palette.primary.main,
+                        borderWidth: 2,
+                      },
+                    },
+                  },
+                }}
               />
             </Box>
 
-            <HeaderIcons sx={{ gap: {xs:0.5, sm:1, md:2} }}>
+            {/* 개선된 네비게이션 및 사용자 액션 */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+              {/* 메뉴 버튼 (모바일에서만 표시) */}
+              <IconButton 
+                sx={{ 
+                  display: { xs: 'block', md: 'none' },
+                  color: 'text.secondary',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                  }
+                }} 
+                onClick={handleNewSlideMenuToggle}
+              >
+                <MenuIcon size={20} />
+              </IconButton>
+
+              {/* 데스크톱 네비게이션 */}
+              <Box sx={{ 
+                display: { xs: 'none', md: 'flex' }, 
+                alignItems: 'center', 
+                gap: 1,
+                mr: 2
+              }}>
+                <Button
+                  variant="text"
+                  startIcon={<HomeIcon size={18} />}
+                  onClick={() => navigate('/')}
+                  sx={{ 
+                    color: 'text.primary',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    minWidth: 'auto',
+                    px: 2,
+                  }}
+                >
+                  홈
+                </Button>
+                <Button
+                  variant="text"
+                  startIcon={<GridIcon size={18} />}
+                  onClick={() => navigate('/ootd')}
+                  sx={{ 
+                    color: 'text.primary',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    minWidth: 'auto',
+                    px: 2,
+                  }}
+                >
+                  OOTD
+                </Button>
+              </Box>
+
               {isAuthenticated ? (
                 <>
                   <Tooltip title="새 게시물 작성">
                     <IconButton 
-                      sx={{ color: 'text.primary' }} 
+                      sx={{ 
+                        color: 'text.primary',
+                        bgcolor: alpha(theme.palette.primary.main, 0.08),
+                        '&:hover': {
+                          bgcolor: alpha(theme.palette.primary.main, 0.12),
+                          transform: 'scale(1.05)',
+                        }
+                      }} 
                       onClick={() => navigate('/create-post')}
                     >
                       <EditIcon size={20}/>
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="알림">
-                    <IconButton sx={{ color: 'text.primary' }}>
-                      <NotificationIcon />
+                    <IconButton sx={{ 
+                      color: 'text.primary',
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                      }
+                    }}>
+                      <NotificationIcon size={20} />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title={user?.nickname || 'User Profile'}>
-                    <IconButton onClick={handleUserMenuOpen} sx={{ p: 0, ml: 1.5 }}>
+                    <IconButton onClick={handleUserMenuOpen} sx={{ p: 0, ml: 1 }}>
                       <Avatar
                         alt={user?.nickname || user?.email}
-                        src={user?.photoURL || undefined} // profilePicture 대신 profileImage 사용 (User 모델 확인 필요)
-                        sx={{ width: AVATAR_SIZE.width, height: AVATAR_SIZE.height, bgcolor: 'primary.main' }}
+                        src={user?.photoURL || undefined}
+                        sx={{ 
+                          width: 40, 
+                          height: 40, 
+                          bgcolor: theme.palette.primary.main,
+                          border: `2px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            transform: 'scale(1.05)',
+                            borderColor: theme.palette.primary.main,
+                          }
+                        }}
                       >
                         {!(user?.photoURL) && (user?.nickname?.[0] || user?.email?.[0])?.toUpperCase()}
                       </Avatar>
@@ -488,16 +635,35 @@ const MainLayout: React.FC = () => {
                   </Tooltip>
                 </>
               ) : (
-                <Tooltip title="로그인">
-                  <IconButton 
-                    sx={{ color: 'text.primary' }}
-                    onClick={handleNewLoginModalOpen} // 로그인 모달 열기
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button 
+                    variant="outlined"
+                    onClick={handleNewLoginModalOpen}
+                    sx={{ 
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      borderRadius: '20px',
+                      px: 3,
+                      display: { xs: 'none', sm: 'inline-flex' }
+                    }}
                   >
-                    <LogInIcon />
+                    로그인
+                  </Button>
+                  <IconButton 
+                    sx={{ 
+                      color: 'text.primary',
+                      display: { xs: 'inline-flex', sm: 'none' },
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                      }
+                    }}
+                    onClick={handleNewLoginModalOpen}
+                  >
+                    <LogInIcon size={20} />
                   </IconButton>
-                </Tooltip>
+                </Box>
               )}
-            </HeaderIcons>
+            </Box>
         </Header>
       </TopFixedArea>
 
@@ -511,11 +677,11 @@ const MainLayout: React.FC = () => {
           minHeight: 0, // Important for flex children to shrink properly if needed
           // width: '100%', // Implicitly full width as a flex item
           boxSizing: 'border-box',
-          // Padding for non-main pages is now internal to MainContent, not for header offset
-          paddingTop: !isMainPage ? theme.spacing(2) : 0,
-          paddingBottom: !isMainPage ? theme.spacing(2) : 0,
-          paddingLeft: !isMainPage ? { xs: 2, sm: 3 } : 0,
-          paddingRight: !isMainPage ? { xs: 2, sm: 3 } : 0,
+          // Responsive padding for non-main pages
+          paddingTop: !isMainPage ? { xs: 2, sm: 3, md: 4 } : 0,
+          paddingBottom: !isMainPage ? { xs: 2, sm: 3, md: 4 } : 0,
+          paddingLeft: !isMainPage ? { xs: 2, sm: 3, md: 4 } : 0,
+          paddingRight: !isMainPage ? { xs: 2, sm: 3, md: 4 } : 0,
           
           overflowY: isMainPage ? 'hidden' : 'auto',
           backgroundColor: (() => {
